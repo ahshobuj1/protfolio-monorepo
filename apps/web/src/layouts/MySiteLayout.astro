@@ -1,0 +1,97 @@
+---
+import "@workspace/ui/globals.css"
+import GridLines from "@/components/GridLines.astro"
+import SiteNav from "@/components/site-nav.astro"
+import ThemeScript from "@/components/ThemeScript.astro"
+import Footer from "@/components/footer.astro"
+import { Toaster } from "@workspace/ui/components/sonner"
+import { LazyAuthModal } from "@/components/auth/LazyAuthModal"
+import { LazyCookieConsent } from "@/components/Legal/LazyCookieConsent"
+import SEO from "@/components/SEO/SEO.astro"
+import GoogleAnalytics from "@/components/GoogleAnalytics.astro"
+---
+
+<html lang="en" class="dark" style="color-scheme: dark">
+  <head>
+    <ThemeScript />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="A H Shobuj | Full Stack Developer"
+      href="/rss.xml"
+    />
+    <!-- DNS Prefetch and Resource Preconnects -->
+    <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+    <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
+    {
+      Astro.url.pathname === "/" && (
+        <>
+          <link
+            rel="preload"
+            as="image"
+            href="/shobuj.png"
+            type="image/png"
+            fetchpriority="high"
+          />
+        </>
+      )
+    }
+    <GoogleAnalytics />
+    <script is:inline>
+      ;(function () {
+        try {
+          if (
+            typeof window === "undefined" ||
+            window.location.pathname.startsWith("/booking/cancel")
+          )
+            return
+          var sp = new URLSearchParams(window.location.search)
+          var token = sp.get("cancelToken") || sp.get("token")
+          if (!token && window.location.hash) {
+            var hash = window.location.hash
+            var q = hash.includes("?")
+              ? hash.split("?")[1]
+              : hash.replace(/^#/, "")
+            var hp = new URLSearchParams(q)
+            token = hp.get("cancelToken") || hp.get("token")
+            if (!token) {
+              var match = hash.match(/(?:token|cancelToken)=([a-zA-Z0-9-]+)/i)
+              if (match && match[1]) token = match[1]
+            }
+          }
+          if (token) {
+            window.location.replace(
+              "/booking/cancel?token=" + encodeURIComponent(token.trim())
+            )
+          }
+        } catch (e) {}
+      })()
+    </script>
+    <slot name="head">
+      <SEO />
+    </slot>
+  </head>
+  <body class="min-h-svh overflow-x-clip bg-background text-foreground">
+    <GridLines lines={[-0.04, 0, 1, 1.04]} />
+
+    <div class="relative mx-[4%]">
+      <header
+        class="sticky top-0 z-50 container mx-auto border-b border-border/40 bg-background/80 backdrop-blur-md supports-backdrop-filter:bg-background/60"
+      >
+        <SiteNav />
+      </header>
+      <main class="relative container mx-auto">
+        <slot />
+      </main>
+    </div>
+
+    <Toaster client:idle />
+    <LazyAuthModal client:idle />
+    <LazyCookieConsent client:idle />
+    <Footer />
+  </body>
+</html>

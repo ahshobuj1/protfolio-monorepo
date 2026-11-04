@@ -1,0 +1,446 @@
+---
+// src/components/Home/ProfesssionalHistory.astro
+import { experiences, type ExperienceItem } from "@/data/experiences"
+import { HugeiconsIcon } from "@hugeicons/react"
+import {
+  Location01Icon,
+  Calendar01Icon,
+  CheckmarkCircle02Icon,
+  ArrowUpRight01Icon,
+} from "@hugeicons/core-free-icons"
+
+const distinctYears = new Set(experiences.map((e) => e.year)).size
+const totalYears = Math.max(1, distinctYears)
+const totalCompanies = new Set(
+  experiences.map((e) => e.company.toLowerCase().trim())
+).size
+const totalTech = [...new Set(experiences.flatMap((e) => e.technologies || []))]
+  .length
+
+interface TimelineMilestone {
+  month: string
+  year: string
+  periodClean: string
+}
+
+function parseExperienceDate(exp: ExperienceItem): TimelineMilestone {
+  let month = ""
+  let year = exp.year || ""
+
+  // 1. Try extracting month from startDate
+  if (exp.startDate) {
+    const d = new Date(exp.startDate)
+    if (!isNaN(d.getTime())) {
+      month = d.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
+      if (!year) {
+        year = d.getFullYear().toString()
+      }
+    }
+  }
+
+  // 2. If no month yet, search inside period string
+  if (!month && exp.period) {
+    const monthRegex =
+      /\b(Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\b/i
+    const match = exp.period.match(monthRegex)
+    if (match) {
+      month = match[1].slice(0, 3).toUpperCase()
+    }
+  }
+
+  // 3. Fallback month if none detected
+  if (!month) {
+    month = "JAN"
+  }
+
+  // 4. Fallback year if not yet determined
+  if (!year) {
+    const yearMatch = exp.period?.match(/\b(20\d{2}|19\d{2})\b/)
+    year = yearMatch ? yearMatch[1] : "2025"
+  }
+
+  const periodClean = exp.period
+    ? exp.period.replace(/^\/\/\s*/, "")
+    : `${month} ${year} — ${exp.isCurrent ? "Present" : "Completed"}`
+
+  return {
+    month,
+    year,
+    periodClean,
+  }
+}
+---
+
+<style>
+  .timeline-experience-card {
+    transition:
+      border-color 250ms ease,
+      background-color 250ms ease,
+      transform 250ms ease,
+      box-shadow 250ms ease;
+  }
+
+  .timeline-experience-card:hover {
+    border-color: oklch(var(--primary) / 50%);
+    background-color: oklch(var(--card) / 80%);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 36px -10px oklch(var(--primary) / 16%);
+  }
+
+  .timeline-beam-glow {
+    filter: drop-shadow(0 0 8px oklch(var(--primary) / 70%));
+  }
+</style>
+
+{
+  experiences && experiences.length > 0 && (
+    <section
+      id="professional-history"
+      data-grid-cross
+      class="relative container mx-auto overflow-hidden pb-12 md:pb-16"
+    >
+      <!-- Section Header -->
+      <div class="relative mb-12 overflow-hidden text-center md:mb-16">
+        <!-- Background Diagonal Stripes -->
+        <div
+          class="diagonal-stripes pointer-events-none absolute inset-0 z-10 bg-background"
+          aria-hidden="true"
+        />
+
+        <div class="relative z-10 py-6">
+          <p class="section-label mb-3">
+            Career Track Record & Engineering Milestones
+          </p>
+          <h2 class="section-title text-foreground">
+            Professional <span class="text-primary">History</span>
+          </h2>
+
+          <!-- Accent bar -->
+          <div class="accent-bar mx-auto mt-4 mb-6 w-48 md:w-56" />
+
+          <!-- Summary Metric Cards -->
+          <div class="mx-auto max-w-2xl border border-border bg-card/40 backdrop-blur-xs">
+            <div class="grid grid-cols-3 divide-x divide-border">
+              <div class="flex flex-col items-center gap-1 py-4">
+                <span class="text-2xl font-black tracking-tighter text-primary tabular-nums md:text-3xl">
+                  {totalYears}+
+                </span>
+                <span class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                  Years Experience
+                </span>
+              </div>
+              <div class="flex flex-col items-center gap-1 py-4">
+                <span class="text-2xl font-black tracking-tighter text-primary tabular-nums md:text-3xl">
+                  {totalCompanies}
+                </span>
+                <span class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                  {totalCompanies === 1 ? "Company" : "Companies"}
+                </span>
+              </div>
+              <div class="flex flex-col items-center gap-1 py-4">
+                <span class="text-2xl font-black tracking-tighter text-primary tabular-nums md:text-3xl">
+                  {totalTech}+
+                </span>
+                <span class="text-[11px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                  Technologies
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full-Width Responsive Timeline -->
+      <div id="history-timeline-root" class="relative w-full px-4 sm:px-6 lg:px-8 pb-12">
+        
+        {/* Timeline Items Container — Shared Coordinate System for Nodes & Rail */}
+        <div id="history-timeline-content" class="relative space-y-12 md:space-y-20">
+          
+          {/* Vertical Rail with Illuminated Gradient Beam (Dead-center at 20px) */}
+          <div
+            id="history-timeline-rail"
+            class="pointer-events-none absolute top-0 bottom-0 left-[19px] w-[2px] overflow-hidden bg-gradient-to-b from-transparent via-border to-transparent [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)] z-0"
+          >
+            <div
+              id="history-timeline-beam"
+              class="timeline-beam-glow absolute inset-x-0 top-0 w-[2px] rounded-full bg-gradient-to-b from-primary via-primary/90 to-transparent"
+              style="height: 0px; opacity: 0; transform: translateZ(0);"
+            />
+          </div>
+
+          {
+            experiences.map((exp) => {
+              const displayTitle = Array.isArray(exp.title)
+                ? exp.title.join(" ")
+                : exp.title || exp.role || "Full Stack Developer"
+
+              const milestone = parseExperienceDate(exp)
+
+              return (
+                <div class="timeline-row group/row relative flex flex-col md:flex-row md:items-start md:gap-8 lg:gap-14 z-10">
+                  
+                  {/* Left Column: Sticky Milestone Month & Year Anchor & Node */}
+                  <div class="sticky top-28 sm:top-36 z-20 flex self-start items-center md:w-52 lg:w-60 shrink-0">
+                    
+                    {/* Node Circle on Timeline Rail (Center aligned at 20px) */}
+                    <div class="absolute left-0 flex size-10 items-center justify-center rounded-full border border-border bg-background shadow-xs z-10 transition-all duration-300 group-hover/row:scale-105 group-hover/row:border-primary/60">
+                      {exp.isCurrent ? (
+                        <div class="relative flex items-center justify-center">
+                          <span class="absolute size-5 rounded-full bg-primary/20 animate-ping opacity-60" />
+                          <span class="size-3.5 rounded-full bg-primary shadow-[0_0_14px_oklch(var(--primary))] animate-pulse" />
+                        </div>
+                      ) : (
+                        <div class="size-3.5 rounded-full border border-primary/50 bg-primary/20 shadow-[0_0_8px_oklch(var(--primary)/40%)] transition-colors duration-200 group-hover/row:bg-primary/50 group-hover/row:border-primary" />
+                      )}
+                    </div>
+
+                    {/* Desktop Sticky Month & Year Display */}
+                    <div class="hidden md:flex pl-16 flex-col items-start gap-1.5">
+                      {/* Month pill */}
+                      <div class="inline-flex items-center gap-1.5 border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-mono text-[11px] font-bold tracking-wider text-primary shadow-[0_0_12px_oklch(var(--primary)/15%)] transition-colors group-hover/row:border-primary/60 group-hover/row:bg-primary/15">
+                        <span class="size-1 rounded-full bg-primary" />
+                        <span>{milestone.month}</span>
+                      </div>
+
+                      {/* Year */}
+                      <div class="font-mono text-3xl lg:text-4xl xl:text-5xl font-black tracking-tight text-foreground/90 tabular-nums transition-colors group-hover/row:text-primary">
+                        {milestone.year}
+                      </div>
+
+                      {/* Current / Status badge */}
+                      {exp.isCurrent ? (
+                        <div class="inline-flex items-center gap-1.5 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
+                          <span class="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Current Role
+                        </div>
+                      ) : (
+                        <div class="font-mono text-[10px] font-semibold tracking-wider text-muted-foreground/60 uppercase">
+                          // MILESTONE
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Desktop Subtle Connector Line towards card */}
+                    <div class="hidden lg:block absolute left-[12.5rem] top-5 w-6 border-t border-dashed border-border/80 transition-colors group-hover/row:border-primary/50 pointer-events-none" />
+                  </div>
+
+                  {/* Right Column: Full-Width Experience Content Card */}
+                  <div class="relative w-full pl-14 md:pl-0 min-w-0 flex-1">
+                    
+                    {/* Mobile Year & Month Badge */}
+                    <div class="mb-3.5 flex flex-wrap items-center justify-between gap-2.5 md:hidden">
+                      <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1 border border-primary/30 bg-primary/10 px-2 py-0.5 font-mono text-xs font-bold text-primary">
+                          <span class="size-1 rounded-full bg-primary" />
+                          {milestone.month}
+                        </span>
+                        <span class="font-mono text-2xl font-black tracking-tight text-foreground">
+                          {milestone.year}
+                        </span>
+                      </div>
+                      {exp.isCurrent ? (
+                        <span class="inline-flex items-center gap-1.5 border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-400">
+                          <span class="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          Current
+                        </span>
+                      ) : (
+                        <span class="font-mono text-[10px] font-medium text-muted-foreground uppercase">
+                          {milestone.periodClean}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Main Experience Card */}
+                    <article class="timeline-experience-card relative w-full border border-border bg-card/40 p-5 sm:p-7 md:p-8 backdrop-blur-xs">
+                      {/* Corner crosshairs matching data-grid-cross motif */}
+                      <div class="pointer-events-none absolute -top-1 -left-1 font-mono text-xs font-bold text-primary/40 select-none transition-colors group-hover/row:text-primary">
+                        +
+                      </div>
+                      <div class="pointer-events-none absolute -bottom-1 -right-1 font-mono text-xs font-bold text-primary/40 select-none transition-colors group-hover/row:text-primary">
+                        +
+                      </div>
+
+                      <div class="space-y-5">
+                        
+                        {/* Header: Clean Layout Immune to Overlap */}
+                        <div class="space-y-3.5 border-b border-border/60 pb-5">
+                          {/* Row 1: Role Title + Period Badge */}
+                          <div class="flex flex-wrap items-center justify-between gap-3">
+                            <h3 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl lg:text-3xl break-words transition-colors group-hover/row:text-foreground">
+                              {displayTitle}
+                            </h3>
+                            <div class="inline-flex items-center gap-1.5 border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-xs font-semibold text-primary shrink-0 shadow-[0_0_12px_oklch(var(--primary)/10%)]">
+                              <HugeiconsIcon icon={Calendar01Icon} className="size-3.5" />
+                              <span>{milestone.periodClean}</span>
+                            </div>
+                          </div>
+
+                          {/* Row 2: Company Link/Badge, Employment Type, Location */}
+                          <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs sm:text-sm text-muted-foreground">
+                            {exp.companyUrl ? (
+                              <a
+                                href={exp.companyUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="group/link inline-flex items-center gap-1.5 font-semibold text-primary hover:underline"
+                              >
+                                <span class="border-b border-primary/40 pb-0.5">{exp.company}</span>
+                                <HugeiconsIcon
+                                  icon={ArrowUpRight01Icon}
+                                  className="size-3.5 transition-transform duration-200 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5"
+                                />
+                              </a>
+                            ) : (
+                              <span class="font-semibold text-primary">{exp.company}</span>
+                            )}
+                            <span class="text-border">•</span>
+                            <span class="border border-border/70 bg-muted/20 px-2 py-0.5 font-mono text-[11px] font-medium text-foreground/80">
+                              {exp.type || "Full-Time"}
+                            </span>
+                            {exp.location && (
+                              <>
+                                <span class="text-border">•</span>
+                                <div class="flex items-center gap-1 font-mono text-xs text-muted-foreground">
+                                  <HugeiconsIcon
+                                    icon={Location01Icon}
+                                    className="size-3.5 text-muted-foreground/70"
+                                  />
+                                  <span>{exp.location}</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Scope Narrative */}
+                        {exp.description && (
+                          <p class="text-sm leading-relaxed text-muted-foreground/90 sm:text-base">
+                            {exp.description}
+                          </p>
+                        )}
+
+                        {/* Key Engineering Accomplishments Grid (2-Column on sm+) */}
+                        {exp.highlights && exp.highlights.length > 0 && (
+                          <div class="space-y-2 pt-1">
+                            <div class="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                              {exp.highlights.map((highlight) => (
+                                <div class="flex items-start gap-2.5 rounded-xs border border-border/50 bg-background/50 p-3 text-xs leading-relaxed text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:bg-background/80 hover:text-foreground/90 sm:text-sm">
+                                  <HugeiconsIcon
+                                    icon={CheckmarkCircle02Icon}
+                                    className="mt-0.5 size-4 shrink-0 text-primary"
+                                  />
+                                  <span>{highlight}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+
+                        {/* Technologies Tags Strip */}
+                        {exp.technologies && exp.technologies.length > 0 && (
+                          <div class="border-t border-border/60 pt-4">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                              <span class="mr-1.5 font-mono text-[10px] font-bold tracking-widest text-muted-foreground/80 uppercase">
+                                Stack:
+                              </span>
+                              {exp.technologies.map((tech) => (
+                                <span class="border border-border/80 bg-muted/30 px-2.5 py-0.5 font-mono text-[11px] font-medium text-foreground/80 transition-colors duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary">
+                                  {tech}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                      </div>
+                    </article>
+                  </div>
+
+                </div>
+              )
+            })
+          }
+        </div>
+
+      </div>
+    </section>
+  )
+}
+
+<script>
+  function setupTimelineScrollEngine() {
+    const root = document.getElementById("history-timeline-root")
+    const content = document.getElementById("history-timeline-content")
+    const beam = document.getElementById("history-timeline-beam")
+
+    if (!root || !content || !beam) return
+
+    let isVisible = false
+    let animationFrameId: number | null = null
+
+    function calculateScrollProgress() {
+      if (!root || !beam || !content) return
+
+      // Read phase
+      const rect = root.getBoundingClientRect()
+      const totalHeight = content.offsetHeight
+      const windowHeight = window.innerHeight
+
+      const startOffset = windowHeight * 0.8
+      const totalDistance = rect.height + windowHeight * 0.3
+      const currentScroll = startOffset - rect.top
+
+      let progress = currentScroll / totalDistance
+      progress = Math.max(0, Math.min(1, progress))
+
+      const beamHeight = progress * totalHeight
+
+      // Write phase
+      beam.style.height = `${beamHeight}px`
+      beam.style.opacity = progress > 0.01 ? "1" : "0"
+    }
+
+    function onScroll() {
+      if (!isVisible) return
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId)
+      }
+      animationFrameId = requestAnimationFrame(() => {
+        calculateScrollProgress()
+        animationFrameId = null
+      })
+    }
+
+    // Viewport Visibility Observer
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          isVisible = entry.isIntersecting
+          if (isVisible) {
+            calculateScrollProgress()
+          }
+        })
+      },
+      { rootMargin: "200px 0px 200px 0px" }
+    )
+
+    observer.observe(root)
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("resize", () => {
+      if (isVisible) calculateScrollProgress()
+    }, { passive: true })
+
+    // Initial pass
+    calculateScrollProgress()
+  }
+
+  document.addEventListener("astro:page-load", setupTimelineScrollEngine)
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupTimelineScrollEngine)
+  } else {
+    setupTimelineScrollEngine()
+  }
+</script>

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalEnv": ["NODE_ENV"],
+  "tasks": {
+    "db:generate": {
+      "inputs": ["packages/db/prisma/schema.prisma", "prisma/schema.prisma"],
+      "outputs": [
+        "node_modules/.prisma/**",
+        "node_modules/@prisma/client/**",
+        "packages/db/node_modules/**"
+      ]
+    },
+    "build": {
+      "dependsOn": ["^db:generate", "^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+    },
+    "lint": { "dependsOn": ["^lint"] },
+    "format": { "dependsOn": ["^format"] },
+    "typecheck": { "dependsOn": ["^db:generate", "^typecheck"] },
+    "dev": { "cache": false, "persistent": true }
+  }
+}

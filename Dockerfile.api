@@ -1,0 +1,87 @@
+# syntax=docker/dockerfile:1.4
+# ==============================================================================
+# Multi-Stage High Performance Dockerfile for Express API (apps/api)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Stage 1: Build Stage
+# ------------------------------------------------------------------------------
+FROM oven/bun:1-alpine AS builder
+
+WORKDIR /app
+
+# Provide placeholder DATABASE_URL for offline Prisma client generation during build
+ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/placeholder_db"
+
+# Install build/native dependencies (OpenSSL required for Prisma)
+RUN apk add --no-cache openssl libc6-compat
+
+# 1. Install workspace dependencies (layer caching)
+COPY package.json bun.lock turbo.json tsconfig.json ./
+COPY packages/db/package.json ./packages/db/
+COPY packages/env/package.json ./packages/env/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/cache/package.json ./packages/cache/
+COPY packages/logger/package.json ./packages/logger/
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+COPY apps/dashboard/package.json ./apps/dashboard/
+
+RUN --mount=type=cache,id=bun-cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
+
+# 2. Copy source code (only packages required by API to avoid cache invalidation from UI/web changes)
+COPY packages/db/ ./packages/db/
+COPY packages/env/ ./packages/env/
+COPY packages/shared/ ./packages/shared/
+COPY packages/cache/ ./packages/cache/
+COPY packages/logger/ ./packages/logger/
+COPY apps/api/ ./apps/api/
+
+# 3. Generate Prisma Client
+RUN cd packages/db && bun run db:generate
+
+# 4. Build API bundle (produces apps/api/dist/index.js)
+RUN cd apps/api && bun run build
+
+# ------------------------------------------------------------------------------
+# Stage 2: Production Lean Runner Image (~120MB)
+# ------------------------------------------------------------------------------
+FROM oven/bun:1-alpine AS runner
+
+WORKDIR /app
+
+# Install runtime dependencies required for Prisma & healthchecks
+RUN apk add --no-cache openssl libc6-compat curl wget ca-certificates \
+  && rm -rf /var/cache/apk/*
+
+ENV NODE_ENV=production \
+    PORT=3040
+
+# Create application directories & set ownership to non-root 'bun' user
+RUN mkdir -p /app/logs && chown -R bun:bun /app
+
+# Copy production bundled files and packages
+COPY --chown=bun:bun --from=builder /app/package.json /app/bun.lock ./
+COPY --chown=bun:bun --from=builder /app/node_modules ./node_modules
+COPY --chown=bun:bun --from=builder /app/packages/db ./packages/db
+COPY --chown=bun:bun --from=builder /app/packages/env ./packages/env
+COPY --chown=bun:bun --from=builder /app/packages/shared ./packages/shared
+COPY --chown=bun:bun --from=builder /app/packages/logger ./packages/logger
+COPY --chown=bun:bun --from=builder /app/packages/cache ./packages/cache
+COPY --chown=bun:bun --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --chown=bun:bun --from=builder /app/apps/api/package.json ./apps/api/
+
+# Switch to non-root user
+USER bun
+
+# Expose API port
+EXPOSE 3040
+
+# Container healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q --spider http://127.0.0.1:3040/health || exit 1
+
+# Start the API service
+CMD ["bun", "run", "apps/api/dist/index.js"]

@@ -1,0 +1,728 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ContactSubmission {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  email      String
+  subject    String?
+  message    String
+  subscribed Boolean  @default(false)
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+
+model Subscriber {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique
+  name         String?
+  status       String   @default("subscribed")
+  source       String   @default("hero_section")
+  subscribedAt DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model EmailTemplate {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String    @unique
+  name        String
+  description String?
+  subject     String
+  body        String    @db.Text
+  from        String?
+  fromName    String?
+  replyTo     String?
+  type        String    @default("TRANSACTIONAL")
+  plunkId     String?
+  isSystem    Boolean   @default(false)
+  syncedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MODERATOR
+  AUTHOR
+  USER
+}
+
+enum OtpType {
+  REGISTER_EMAIL_VERIFY
+  PASSWORD_RESET
+  LOGIN_2FA
+}
+
+model User {
+  id                     String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                  String            @unique
+  username               String            @unique
+  name                   String
+  password               String?
+  googleId               String?           @unique
+  avatar                 String?
+  resumeUrl              String?
+  role                   Role              @default(USER)
+  headline               String?
+  badge                  String?
+  bio                    String?           @db.Text
+  location               String?
+  website                String?
+  githubUrl              String?
+  twitterUrl             String?
+  linkedinUrl            String?
+  pronouns               String?
+  customStatus           String?
+  isEmailVerified        Boolean           @default(false)
+  subscribedToNewsletter Boolean           @default(true)
+  twoFactorEnabled       Boolean           @default(false)
+  lastLoginAt            DateTime?
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @default(now()) @updatedAt
+
+  otps                   OtpVerification[]
+  refreshTokens          RefreshToken[]
+  posts                  BlogPost[]
+  blogReactions          BlogReaction[]
+  comments               Comment[]
+  commentReactions       CommentReaction[]
+  commentReports         CommentReport[]   @relation("ReportedByUser")
+  reviewedReports        CommentReport[]   @relation("ReviewedByUser")
+  uploadedMedia          MediaFile[]
+  caseStudies            CaseStudy[]
+  googleCalendarAccount  GoogleCalendarAccount?
+
+  @@index([email])
+  @@index([username])
+}
+
+model OtpVerification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email     String
+  code      String
+  type      OtpType
+  payload   String?  @db.Text
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  userId    String?  @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email, type])
+  @@index([expiresAt])
+}
+
+model RefreshToken {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token     String    @unique
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+}
+
+model BlogCategory {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String     @unique
+  name        String     @unique
+  description String?
+  color       String?    @default("blue")
+  icon        String?
+  order       Int        @default(0)
+  posts       BlogPost[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
+
+  @@index([slug])
+}
+
+model BlogTag {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String   @unique
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@index([slug])
+}
+
+model BlogPost {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug               String        @unique
+  title              String
+  subtitle           String?
+  summary            String        @db.Text
+  content            String        @db.Text
+  thumbnail          String?
+  status             BlogStatus    @default(DRAFT)
+  featured           Boolean       @default(false)
+  pinned             Boolean       @default(false)
+  readTime           String?       @default("5 MIN READ")
+  readTimeMinutes    Int           @default(5)
+  wordCount          Int           @default(0)
+  date               String?
+  publishedAt        DateTime?
+  scheduledAt        DateTime?
+  modifiedAt         DateTime?
+  views              Int           @default(0)
+  likesCount         Int           @default(0)
+  commentsCount      Int           @default(0)
+  keyTakeaways       String[]      @default([])
+  tags               String[]      @default([])
+
+  // Category Relation
+  categoryId         String?       @db.Uuid
+  category           BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Author Relations & Override Personas
+  authorId           String?       @db.Uuid
+  author             User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorName         String?
+  authorRole         String?
+  authorAvatar       String?
+  authorTwitter      String?
+  authorLinkedin     String?
+  authorGithub       String?
+
+  // SEO & Social Media Metadata Engine
+  metaTitle          String?
+  metaDescription    String?       @db.Text
+  metaKeywords       String[]      @default([])
+  ogTitle            String?
+  ogDescription      String?       @db.Text
+  ogImage            String?
+  ogType             String        @default("article")
+  twitterCard        String        @default("summary_large_image")
+  twitterTitle       String?
+  twitterDescription String?       @db.Text
+  twitterImage       String?
+  canonicalUrl       String?
+  articleType        String        @default("TechArticle")
+  noIndex            Boolean       @default(false)
+  noFollow           Boolean       @default(false)
+  structuredData     Json?
+
+  reactions          BlogReaction[]
+  comments           Comment[]
+
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @default(now()) @updatedAt
+
+  @@index([slug])
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([featured])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model BlogReaction {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId       String    @db.Uuid
+  post         BlogPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId       String?   @db.Uuid
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactionType String    @default("like")
+  ipAddress    String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([postId, userId, reactionType])
+  @@index([postId, reactionType])
+}
+
+enum CommentStatus {
+  APPROVED
+  PENDING
+  SPAM
+  REJECTED
+}
+
+enum CommentReportReason {
+  SPAM
+  HARASSMENT
+  HATE_SPEECH
+  INAPPROPRIATE
+  MISINFORMATION
+  OTHER
+}
+
+enum CommentReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+  ACTION_TAKEN
+}
+
+model Comment {
+  id           String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  postId       String             @db.Uuid
+  post         BlogPost           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId     String?            @db.Uuid
+  author       User?              @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  // Guest / fallback metadata
+  guestName    String?
+  guestEmail   String?
+  guestAvatar  String?
+
+  content      String             @db.Text
+  status       CommentStatus      @default(APPROVED)
+  isPinned     Boolean            @default(false)
+  likesCount   Int                @default(0)
+
+  // Nested self-relation for threaded replies
+  parentId     String?            @db.Uuid
+  parent       Comment?           @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies      Comment[]          @relation("CommentReplies")
+
+  reactions    CommentReaction[]
+  reports      CommentReport[]
+
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @default(now()) @updatedAt
+
+  @@index([postId, status, createdAt])
+  @@index([parentId])
+  @@index([authorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CommentReaction {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  commentId    String    @db.Uuid
+  comment      Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  userId       String?   @db.Uuid
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactionType String    @default("like")
+  ipAddress    String?
+  createdAt    DateTime  @default(now())
+
+  @@unique([commentId, userId, reactionType])
+  @@index([commentId, reactionType])
+}
+
+model CommentReport {
+  id              String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  commentId       String              @db.Uuid
+  comment         Comment             @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  reporterId      String?             @db.Uuid
+  reporter        User?               @relation("ReportedByUser", fields: [reporterId], references: [id], onDelete: SetNull)
+  reporterName    String?
+  reporterEmail   String?
+
+  reason          CommentReportReason @default(INAPPROPRIATE)
+  details         String?             @db.Text
+  status          CommentReportStatus @default(PENDING)
+
+  reviewedById    String?             @db.Uuid
+  reviewedBy      User?               @relation("ReviewedByUser", fields: [reviewedById], references: [id], onDelete: SetNull)
+  resolutionNotes String?             @db.Text
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @default(now()) @updatedAt
+
+  @@index([commentId])
+  @@index([status])
+  @@index([reporterId])
+  @@index([reviewedById])
+  @@index([createdAt])
+}
+
+model MediaFile {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key            String    @unique
+  bucket         String
+  fileName       String
+  fileExtension  String?
+  mimeType       String
+  size           BigInt
+  url            String
+  etag           String?
+  source         String    @default("API")
+  folder         String    @default("general")
+  entityType     String?
+  entityId       String?   @db.Uuid
+  tags           String[]  @default([])
+  altText        String?
+  caption        String?
+  metadata       Json?
+  isPublic       Boolean   @default(true)
+  uploaderId     String?   @db.Uuid
+  uploader       User?     @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  @@index([folder])
+  @@index([source])
+  @@index([mimeType])
+  @@index([entityType, entityId])
+  @@index([uploaderId])
+  @@index([createdAt])
+}
+
+enum CaseStudyStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CaseStudyType {
+  CASE_STUDY
+  PROJECT
+}
+
+model CaseStudy {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug               String          @unique
+  title              String
+  subtitle           String?
+  description        String          @db.Text
+  projectType        CaseStudyType   @default(CASE_STUDY)
+  status             CaseStudyStatus @default(DRAFT)
+  projectStatus      String          @default("Status: Completed")
+  order              Int             @default(0)
+  featured           Boolean         @default(false)
+  pinned             Boolean         @default(false)
+  techStack          String[]        @default([])
+  liveUrl            String?
+  githubUrl          String?
+  image              String
+  imageLabel         String?
+  role               String?
+  timeline           String?
+  client             String?
+  impact             String?         @db.Text
+  highlights         String[]        @default([])
+  views              Int             @default(0)
+  likesCount         Int             @default(0)
+  publishedAt        DateTime?
+
+  // Author Relations & Personas
+  authorId           String?         @db.Uuid
+  author             User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  authorName         String?
+  authorRole         String?
+  authorAvatar       String?
+  authorTwitter      String?
+  authorLinkedin     String?
+  authorGithub       String?
+
+  // Structured Content Sections stored as JSONB
+  metadata           Json?           @default("[]")
+  contextBlocks      Json?           @default("[]")
+  architectureLayers Json?           @default("[]")
+  features           Json?           @default("[]")
+  metrics            Json?           @default("[]")
+  postMortem         Json?           @default("[]")
+
+  // SEO & OpenGraph Metadata
+  metaTitle          String?
+  metaDescription    String?         @db.Text
+  metaKeywords       String[]        @default([])
+  ogTitle            String?
+  ogDescription      String?         @db.Text
+  ogImage            String?
+  twitterCard        String          @default("summary_large_image")
+  twitterTitle       String?
+  twitterDescription String?         @db.Text
+  twitterImage       String?
+  canonicalUrl       String?
+  structuredData     Json?
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @default(now()) @updatedAt
+
+  @@index([slug])
+  @@index([projectType, status])
+  @@index([status, publishedAt])
+  @@index([featured])
+  @@index([order])
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+enum NewsletterStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+enum AudienceType {
+  ALL
+  SEGMENT
+  CUSTOM
+}
+
+enum SendLogStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+}
+
+model Newsletter {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title           String
+  subject         String
+  previewText     String?
+  content         String           @db.Text
+  status          NewsletterStatus @default(DRAFT)
+  templateId      String?          @db.Uuid
+
+  // Custom sender overrides (optional)
+  senderName      String?
+  senderEmail     String?
+  replyTo         String?
+
+  // Audience targeting & filtering
+  targetAudience  AudienceType     @default(ALL)
+  includedSources String[]         @default([])
+  includedTags    String[]         @default([])
+  includedEmails  String[]         @default([])
+  excludedEmails  String[]         @default([])
+  excludedSources String[]         @default([])
+
+  // Scheduling & Dispatch Timing
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+
+  // Plunk Integration
+  plunkCampaignId String?
+  
+  // Delivery & Dispatch Analytics
+  totalRecipients Int              @default(0)
+  successfulSends Int              @default(0)
+  failedSends     Int              @default(0)
+  deliveredCount  Int              @default(0)
+  openedCount     Int              @default(0)
+  clickedCount    Int              @default(0)
+  bouncedCount    Int              @default(0)
+
+  // Anti-spam deliverability metrics & metadata
+  spamScore       Float?           @default(0)
+  spamReport      Json?
+  metadata        Json?
+
+  // Audit Logs
+  logs            NewsletterSendLog[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now()) @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([plunkCampaignId])
+  @@index([createdAt])
+}
+
+model NewsletterSendLog {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  newsletterId String        @db.Uuid
+  newsletter   Newsletter    @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
+  subscriberId String?       @db.Uuid
+  email        String
+  name         String?
+  status       SendLogStatus @default(PENDING)
+  error        String?       @db.Text
+  sentAt       DateTime?
+  createdAt    DateTime      @default(now())
+
+  @@index([newsletterId, status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+
+model Resume {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String
+  version       String
+  fileName      String
+  fileUrl       String
+  fileKey       String
+  fileSize      BigInt
+  mimeType      String   @default("application/pdf")
+  isActive      Boolean  @default(false)
+  description   String?  @db.Text
+  downloadCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+enum SkillStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model SkillCategory {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slug        String       @unique
+  code        String
+  title       String
+  badge       String
+  ordinal     String?      @default("01")
+  suffix      String?      @default("ST")
+  icon        String?
+  color       String?      @default("blue")
+  description String?
+  order       Int          @default(0)
+  status      SkillStatus  @default(PUBLISHED)
+  skills      Skill[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+
+  @@index([slug])
+  @@index([status, order])
+}
+
+model Skill {
+  id          String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  leftLabel   String?
+  rightLabel  String?
+  level       Int            @default(5)
+  icon        String?
+  tags        String[]       @default([])
+  featured    Boolean        @default(false)
+  order       Int            @default(0)
+  status      SkillStatus    @default(PUBLISHED)
+  categoryId  String?        @db.Uuid
+  category    SkillCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @default(now()) @updatedAt
+
+  @@index([categoryId])
+  @@index([status, order])
+  @@index([featured])
+  @@index([createdAt])
+}
+
+// ==========================================
+// Booking & Google Calendar Integration Models
+// ==========================================
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  RESCHEDULED
+  COMPLETED
+}
+
+model GoogleCalendarAccount {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String    @unique @db.Uuid
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken  String    @db.Text
+  refreshToken String    @db.Text
+  tokenExpiry  DateTime
+  calendarId   String    @default("primary")
+  email        String
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+
+  @@index([userId])
+}
+
+model BookingAvailability {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  dayOfWeek       Int      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime       String   // e.g. "09:00"
+  endTime         String   // e.g. "17:00"
+  isActive        Boolean  @default(true)
+  slotDuration    Int      @default(30) // minutes
+  bufferTime      Int      @default(15) // buffer minutes between meetings
+  timezone        String   @default("UTC")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now()) @updatedAt
+
+  @@unique([dayOfWeek])
+  @@index([dayOfWeek, isActive])
+}
+
+model Booking {
+  id                String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  guestName         String
+  guestEmail        String
+  guestNotes        String?       @db.Text
+  meetingType       String        @default("1-on-1 Consultation")
+  startTime         DateTime
+  endTime           DateTime
+  durationMinutes   Int           @default(30)
+  timezone          String        @default("UTC")
+  status            BookingStatus @default(CONFIRMED)
+  
+  // Google Calendar Integration Details
+  googleEventId     String?       @unique
+  googleMeetLink    String?
+  cancellationToken String        @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now()) @updatedAt
+
+  @@index([startTime, endTime])
+  @@index([guestEmail])
+  @@index([status])
+  @@index([cancellationToken])
+}
+
+enum RedirectEntityType {
+  BLOG_POST
+  CASE_STUDY
+  BLOG_CATEGORY
+  STATIC_PAGE
+  CUSTOM
+}
+
+model Redirect {
+  id            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sourcePath    String              @unique
+  targetPath    String
+  statusCode    Int                 @default(301)
+  entityType    RedirectEntityType  @default(CUSTOM)
+  entityId      String?
+  autoGenerated Boolean             @default(false)
+  isActive      Boolean             @default(true)
+  hitCount      Int                 @default(0)
+  lastHitAt     DateTime?
+  notes         String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @default(now()) @updatedAt
+
+  @@index([sourcePath, isActive])
+  @@index([entityType, entityId])
+}
+

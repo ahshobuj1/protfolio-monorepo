@@ -1,0 +1,29 @@
+---
+import SEO, { type BreadcrumbItem } from "./SEO.astro"
+import type { BlogPost } from "@/data/blogPosts"
+import type { CaseStudyDetail } from "@/data/caseStudies"
+
+export type { BreadcrumbItem }
+
+interface Props {
+  post?: BlogPost
+  caseStudy?: CaseStudyDetail
+  title?: string
+  description?: string
+  image?: string
+  url?: string
+  type?: "article" | "website" | "profile"
+  category?: string
+  tags?: string[]
+  publishedTime?: string
+  modifiedTime?: string
+  breadcrumbs?: BreadcrumbItem[]
+  noIndex?: boolean
+  prevPageUrl?: string
+  nextPageUrl?: string
+}
+
+const props = Astro.props
+---
+
+<SEO {...props} />

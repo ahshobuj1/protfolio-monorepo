@@ -1,0 +1,715 @@
+---
+import {
+  GithubIcon,
+  Linkedin02Icon,
+  Facebook02Icon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Input } from "@workspace/ui/components/input"
+import { Textarea } from "@workspace/ui/components/textarea"
+import { Icon } from "astro-icon/components"
+---
+
+<style>
+  /* Left-border hover accent on contact info rows */
+  .contact-info-row {
+    border-left: 2px solid transparent;
+    padding-left: 1rem;
+    transition:
+      border-color 200ms ease,
+      background 200ms ease;
+  }
+  .contact-info-row:hover {
+    border-left-color: oklch(var(--primary) / 70%);
+    background: oklch(var(--primary) / 4%);
+  }
+
+  /* Form field focus-within label lift */
+  .field-group:focus-within label {
+    color: oklch(var(--primary));
+  }
+
+  /* Subtle shimmer on submit hover */
+  @keyframes shimmer-x {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+  .btn-shimmer:hover {
+    animation: shimmer-x 1.4s ease infinite;
+    background-image: linear-gradient(
+      105deg,
+      oklch(var(--primary)) 0%,
+      oklch(var(--primary) / 85%) 45%,
+      oklch(var(--primary)) 55%,
+      oklch(var(--primary)) 100%
+    );
+    background-size: 200% auto;
+  }
+</style>
+
+<section
+  id="contact"
+  class="relative z-10 container mx-auto overflow-hidden"
+  data-grid-cross
+>
+  <!-- ── Section Header ─────────────────────────────────────────── -->
+  <div class="relative overflow-hidden border-b border-border text-center">
+    <!-- Diagonal stripe background -->
+    <div
+      class="diagonal-stripes pointer-events-none absolute inset-0 z-10 bg-background"
+      aria-hidden="true"
+    >
+    </div>
+
+    <!-- Ambient glow (Zero-CLS Radial Gradient) -->
+    <div
+      class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(0,220,200,0.1)_0%,transparent_70%)]"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div class="relative z-10 py-8">
+      <p class="section-label mb-4 pt-6">
+        Open to opportunities · Remote friendly
+      </p>
+      <h2
+        class="section-title mb-4 text-foreground"
+        style="font-style: normal;"
+      >
+        Get In <span class="text-primary">Touch</span>
+      </h2>
+      <div class="accent-bar mx-auto mb-6 w-48"></div>
+    </div>
+  </div>
+
+  <!-- ── Main Content ───────────────────────────────────────────── -->
+  <div class="grid bg-card lg:grid-cols-[1fr_1.25fr]">
+    <!-- Left Column: Info & Context -->
+    <div
+      class="flex flex-col justify-between border-b border-border p-8 md:p-10 lg:border-r lg:border-b-0"
+    >
+      <div class="flex flex-col gap-7">
+        <!-- Editorial statement -->
+        <div class="space-y-3">
+          <p
+            class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-[1.85rem] lg:leading-snug"
+          >
+            Got a project in mind?<br />
+            <span class="text-primary">Let's make it happen.</span>
+          </p>
+          <p class="max-w-[44ch] text-sm leading-relaxed text-muted-foreground">
+            Whether it's a full-stack application, backend architecture, or
+            cloud infrastructure — I'm open to freelance work, full-time roles,
+            and interesting collaborations.
+          </p>
+        </div>
+
+        <!-- Contact details -->
+        <div
+          class="flex flex-col divide-y divide-border/60 border-t border-border pt-2"
+        >
+          <!-- Email -->
+          <!--email_off-->
+          <a
+            href="mailto:fi@amanillah.com"
+            class="contact-info-row group flex items-center gap-4 py-3.5 no-underline"
+          >
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground transition-all duration-200 group-hover:border-primary/40 group-hover:bg-primary/10 group-hover:text-primary"
+            >
+              <Icon name="mdi:email-outline" class="size-4" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <span
+                class="font-mono text-[10px] leading-none tracking-[0.14em] text-muted-foreground uppercase"
+              >
+                Email
+              </span>
+              <span
+                class="text-sm leading-tight font-semibold text-foreground transition-colors group-hover:text-primary"
+              >
+                fi@amanillah.com
+              </span>
+            </div>
+          </a>
+          <!--/email_off-->
+
+          <!-- Location & Timezone -->
+          <div class="contact-info-row flex items-center gap-4 py-3.5">
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground"
+            >
+              <Icon name="mdi:map-marker-outline" class="size-4" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <span
+                class="font-mono text-[10px] leading-none tracking-[0.14em] text-muted-foreground uppercase"
+              >
+                Location & Timezone
+              </span>
+              <span class="text-sm leading-tight font-medium text-foreground">
+                Dhaka, Bangladesh <span
+                  class="font-normal text-muted-foreground/80">· UTC+06:00</span
+                >
+              </span>
+            </div>
+          </div>
+
+          <!-- Response Time -->
+          <div class="contact-info-row flex items-center gap-4 py-3.5">
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center border border-border bg-background text-muted-foreground"
+            >
+              <Icon name="mdi:clock-outline" class="size-4" />
+            </div>
+            <div class="flex flex-col gap-1">
+              <span
+                class="font-mono text-[10px] leading-none tracking-[0.14em] text-muted-foreground uppercase"
+              >
+                Response Time
+              </span>
+              <span class="text-sm leading-tight font-medium text-foreground">
+                Typically within 24 hours
+              </span>
+            </div>
+          </div>
+
+          <!-- Social links -->
+          <div class="contact-info-row flex items-center gap-4 py-3.5">
+            <div class="flex flex-col gap-2">
+              <span
+                class="font-mono text-[10px] leading-none tracking-[0.14em] text-muted-foreground uppercase"
+              >
+                Find me on
+              </span>
+              <div class="flex items-center gap-2">
+                {
+                  [
+                    {
+                      href: "https://github.com/fiamanillah",
+                      label: "GitHub",
+                      icon: GithubIcon,
+                    },
+                    {
+                      href: "https://www.linkedin.com/in/fi-amanillah/",
+                      label: "LinkedIn",
+                      icon: Linkedin02Icon,
+                    },
+                    {
+                      href: "https://www.facebook.com/fiamanillah.b2",
+                      label: "Facebook",
+                      icon: Facebook02Icon,
+                    },
+                  ].map(({ href, label, icon }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      class="inline-flex h-9 w-9 items-center justify-center border border-border bg-background text-muted-foreground transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary hover:shadow-[0_0_10px_oklch(var(--primary)/0.2)]"
+                    >
+                      <HugeiconsIcon
+                        icon={icon}
+                        className="size-4"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Status & Availability Strip -->
+      <div class="mt-8 border-t border-border pt-4">
+        <div
+          class="flex items-center justify-between font-mono text-xs text-muted-foreground"
+        >
+          <span class="inline-flex items-center gap-2">
+            <span class="relative flex h-2 w-2">
+              <span
+                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"
+              ></span>
+              <span
+                class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"
+              ></span>
+            </span>
+            Available for new projects
+          </span>
+          <span
+            class="text-[10px] tracking-wider text-muted-foreground/60 uppercase"
+          >
+            Remote Friendly
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Form -->
+    <div class="relative bg-background/50 p-8 md:p-10">
+      <!-- Corner brackets -->
+      <div
+        class="pointer-events-none absolute top-3 left-3 h-5 w-5 border-t-[1.5px] border-l-[1.5px] border-primary/30"
+      >
+      </div>
+      <div
+        class="pointer-events-none absolute top-3 right-3 h-5 w-5 border-t-[1.5px] border-r-[1.5px] border-primary/30"
+      >
+      </div>
+      <div
+        class="pointer-events-none absolute bottom-3 left-3 h-5 w-5 border-b-[1.5px] border-l-[1.5px] border-primary/30"
+      >
+      </div>
+      <div
+        class="pointer-events-none absolute right-3 bottom-3 h-5 w-5 border-r-[1.5px] border-b-[1.5px] border-primary/30"
+      >
+      </div>
+
+      <!-- Form header row -->
+      <div
+        class="mb-6 flex items-center justify-between border-b border-border pb-4"
+      >
+        <span
+          class="font-mono text-xs font-bold tracking-[0.12em] text-foreground uppercase"
+        >
+          Send a Message
+        </span>
+        <div
+          class="flex items-center gap-2 border border-border bg-background px-2.5 py-1"
+        >
+          <Icon name="mdi:lock-outline" class="size-3 text-primary/50" />
+          <span
+            class="font-mono text-[10px] tracking-[0.1em] text-muted-foreground uppercase"
+          >
+            Secure
+          </span>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form id="contact-form" class="flex flex-col gap-5">
+        <!-- Honeypot Field (The Silent Trap: hidden visually and from screen readers) -->
+        <div
+          aria-hidden="true"
+          style="display:none; position:absolute; left:-9999px; opacity:0; pointer-events:none;"
+        >
+          <label for="contact-hp">Leave this field empty</label>
+          <input
+            type="text"
+            id="contact-hp"
+            name="hp_field"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Name + Email row -->
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <!-- Name -->
+          <div class="field-group flex flex-col gap-2">
+            <label
+              for="contact-name"
+              class="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase transition-colors"
+            >
+              Full Name <span class="text-primary">*</span>
+            </label>
+            <Input
+              type="text"
+              id="contact-name"
+              name="name"
+              required
+              placeholder="Your name"
+              className="h-11 w-full rounded-none border border-border bg-background/60 px-3 font-mono text-sm text-foreground transition-all duration-200 outline-none placeholder:text-muted-foreground/40 focus-visible:border-primary focus-visible:bg-primary/5 focus-visible:shadow-[0_0_0_1px_oklch(var(--primary)/30%)] focus-visible:ring-0"
+            />
+          </div>
+
+          <!-- Email -->
+          <div class="field-group flex flex-col gap-2">
+            <label
+              for="contact-email"
+              class="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase transition-colors"
+            >
+              Email Address <span class="text-primary">*</span>
+            </label>
+            <Input
+              type="email"
+              id="contact-email"
+              name="email"
+              required
+              placeholder="you@example.com"
+              className="h-11 w-full rounded-none border border-border bg-background/60 px-3 font-mono text-sm text-foreground transition-all duration-200 outline-none placeholder:text-muted-foreground/40 focus-visible:border-primary focus-visible:bg-primary/5 focus-visible:shadow-[0_0_0_1px_oklch(var(--primary)/30%)] focus-visible:ring-0"
+            />
+          </div>
+        </div>
+
+        <!-- Subject -->
+        <div class="field-group flex flex-col gap-2">
+          <label
+            for="contact-subject"
+            class="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase transition-colors"
+          >
+            Subject
+          </label>
+          <Input
+            type="text"
+            id="contact-subject"
+            name="subject"
+            placeholder="What's this about?"
+            className="h-11 w-full rounded-none border border-border bg-background/60 px-3 font-mono text-sm text-foreground transition-all duration-200 outline-none placeholder:text-muted-foreground/40 focus-visible:border-primary focus-visible:bg-primary/5 focus-visible:shadow-[0_0_0_1px_oklch(var(--primary)/30%)] focus-visible:ring-0"
+          />
+        </div>
+
+        <!-- Message -->
+        <div class="field-group flex flex-col gap-2">
+          <label
+            for="contact-message"
+            class="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase transition-colors"
+          >
+            Message <span class="text-primary">*</span>
+          </label>
+          <Textarea
+            id="contact-message"
+            name="message"
+            required
+            rows={5}
+            placeholder="Tell me about your project, timeline, and budget..."
+            className="min-h-[7.5rem] w-full resize-none rounded-none border border-border bg-background/60 p-3 font-mono text-sm text-foreground transition-all duration-200 outline-none placeholder:text-muted-foreground/40 focus-visible:border-primary focus-visible:bg-primary/5 focus-visible:shadow-[0_0_0_1px_oklch(var(--primary)/30%)] focus-visible:ring-0"
+          />
+        </div>
+
+        <!-- Optional Newsletter Subscription Checkbox -->
+        <div class="field-group flex items-center gap-3 pt-1">
+          <input
+            type="checkbox"
+            id="contact-subscribe"
+            name="subscribe"
+            class="h-4 w-4 shrink-0 cursor-pointer rounded-none border border-border bg-background/60 text-primary accent-primary focus:ring-0 focus:ring-offset-0"
+            checked
+          />
+          <label
+            for="contact-subscribe"
+            class="cursor-pointer font-mono text-xs text-muted-foreground/90 select-none"
+          >
+            Subscribe to newsletter &amp; tech updates <span
+              class="text-xs text-muted-foreground/60">(optional)</span
+            >
+          </label>
+        </div>
+
+        <!-- Cloudflare Turnstile Container -->
+        <div
+          id="turnstile-container"
+          class="flex min-h-[65px] justify-center empty:hidden"
+        >
+        </div>
+
+        <!-- Status Message Banner -->
+        <div
+          id="contact-status"
+          class="hidden rounded border p-3 font-mono text-xs leading-relaxed transition-all"
+          role="alert"
+        >
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          id="contact-submit"
+          class="btn-shimmer group/btn relative mt-2 inline-flex w-full items-center justify-center gap-3 border border-primary bg-primary px-6 py-3.5 font-mono text-[0.75rem] font-bold tracking-[0.15em] text-primary-foreground uppercase transition-all duration-300 hover:shadow-[0_0_24px_oklch(var(--primary)/0.4)] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span
+            id="contact-submit-text"
+            class="flex items-center gap-3 transition-transform duration-200"
+          >
+            Send Message
+            <svg
+              class="size-4 transition-transform duration-200 group-hover/btn:translate-x-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2.5"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          </span>
+        </button>
+      </form>
+
+      <!-- Privacy note -->
+      <p
+        class="mt-4 font-mono text-[10px] tracking-wide text-muted-foreground/60 uppercase"
+      >
+        Your information is kept private and never shared.
+      </p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { getApiBaseUrl } from "@/lib/api/baseUrl"
+
+  let turnstileWidgetId: string | null = null
+
+  function showStatus(
+    message: string,
+    isError: boolean,
+    suggestedEmail?: string
+  ) {
+    const statusDiv = document.getElementById("contact-status")
+    const emailInput = document.getElementById(
+      "contact-email"
+    ) as HTMLInputElement | null
+    if (!statusDiv) return
+
+    statusDiv.classList.remove(
+      "hidden",
+      "bg-emerald-500/10",
+      "border-emerald-500/30",
+      "text-emerald-400",
+      "bg-destructive/10",
+      "border-destructive/30",
+      "text-destructive"
+    )
+
+    if (isError) {
+      statusDiv.classList.add(
+        "bg-destructive/10",
+        "border-destructive/30",
+        "text-destructive"
+      )
+    } else {
+      statusDiv.classList.add(
+        "bg-emerald-500/10",
+        "border-emerald-500/30",
+        "text-emerald-400"
+      )
+    }
+
+    if (suggestedEmail) {
+      statusDiv.innerHTML = `
+        <div>${message}</div>
+        <div class="mt-2 flex items-center justify-between gap-2 border-t border-destructive/20 pt-2 text-amber-300 font-semibold">
+          <span>Did you mean <strong>${suggestedEmail}</strong>?</span>
+          <button type="button" id="contact-apply-suggestion" class="rounded bg-amber-400 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-black transition hover:bg-amber-300 cursor-pointer">
+            Apply
+          </button>
+        </div>
+      `
+      const applyBtn = document.getElementById("contact-apply-suggestion")
+      applyBtn?.addEventListener("click", () => {
+        if (emailInput) emailInput.value = suggestedEmail
+        hideStatus()
+        emailInput?.focus()
+      })
+    } else {
+      statusDiv.textContent = message
+    }
+    window.dispatchEvent(new CustomEvent("grid-refresh"))
+  }
+
+  function hideStatus() {
+    const statusDiv = document.getElementById("contact-status")
+    if (statusDiv) {
+      statusDiv.classList.add("hidden")
+      statusDiv.innerHTML = ""
+      window.dispatchEvent(new CustomEvent("grid-refresh"))
+    }
+  }
+
+  function initContactTurnstileOnDemand() {
+    const isLocal =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1"
+    const turnstileKey =
+      import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ||
+      (isLocal ? "1x00000000000000000000AA" : "0x4AAAAAAEMAnAognjniSApt")
+    const container = document.getElementById("turnstile-container")
+    if (!turnstileKey || !container || turnstileWidgetId !== null) return
+
+    const render = () => {
+      if (window.turnstile && turnstileWidgetId === null) {
+        try {
+          turnstileWidgetId = window.turnstile.render("#turnstile-container", {
+            sitekey: turnstileKey,
+            theme: "dark",
+            callback: () => {
+              window.dispatchEvent(new CustomEvent("grid-refresh"))
+            },
+          })
+          window.dispatchEvent(new CustomEvent("grid-refresh"))
+        } catch (err) {
+          console.warn("Turnstile render error:", err)
+        }
+      }
+    }
+
+    if (window.turnstile) {
+      render()
+      return
+    }
+
+    let script = document.getElementById(
+      "cf-turnstile-script"
+    ) as HTMLScriptElement | null
+    if (!script) {
+      script = document.createElement("script")
+      script.id = "cf-turnstile-script"
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+      script.async = true
+      script.defer = true
+      document.head.appendChild(script)
+    }
+    script.addEventListener("load", render, { once: true })
+  }
+
+  function setupContactForm() {
+    const form = document.getElementById(
+      "contact-form"
+    ) as HTMLFormElement | null
+    const submitBtn = document.getElementById(
+      "contact-submit"
+    ) as HTMLButtonElement | null
+    const submitText = document.getElementById("contact-submit-text")
+
+    if (!form || !submitBtn || !submitText) return
+
+    if (form.dataset.bound === "true") return
+    form.dataset.bound = "true"
+
+    // Attach lazy Turnstile listeners to all form inputs
+    const inputs = form.querySelectorAll("input, textarea")
+    inputs.forEach((input) => {
+      input.addEventListener("focus", initContactTurnstileOnDemand, {
+        once: true,
+      })
+      input.addEventListener("click", initContactTurnstileOnDemand, {
+        once: true,
+      })
+      input.addEventListener("input", initContactTurnstileOnDemand, {
+        once: true,
+      })
+    })
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault()
+      initContactTurnstileOnDemand()
+      hideStatus()
+
+      const formData = new FormData(form)
+      const name = (formData.get("name") as string)?.trim()
+      const email = (formData.get("email") as string)?.trim()
+      const subject = (formData.get("subject") as string)?.trim()
+      const message = (formData.get("message") as string)?.trim()
+      const hp_field = (formData.get("hp_field") as string) || ""
+      const subscribeInput = document.getElementById(
+        "contact-subscribe"
+      ) as HTMLInputElement | null
+      const subscribe = subscribeInput
+        ? subscribeInput.checked
+        : Boolean(formData.get("subscribe"))
+
+      let captchaToken = ""
+      if (window.turnstile && turnstileWidgetId) {
+        captchaToken = window.turnstile.getResponse(turnstileWidgetId) || ""
+      }
+
+      const originalHTML = submitText.innerHTML
+      submitBtn.disabled = true
+      submitText.innerHTML = `<span class="animate-pulse">Sending message...</span>`
+
+      const apiUrl = getApiBaseUrl()
+
+      try {
+        const response = await fetch(`${apiUrl}/contact/v1/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            subject,
+            message,
+            subscribe,
+            hp_field,
+            captchaToken,
+          }),
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok && data.success) {
+          submitText.innerHTML = `
+            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            Message Sent!
+          `
+          submitBtn.classList.remove("bg-primary", "border-primary")
+          submitBtn.classList.add("bg-emerald-600", "border-emerald-600")
+
+          showStatus(
+            data.message || "Thank you! Your message has been delivered.",
+            false
+          )
+          form.reset()
+
+          if (window.turnstile && turnstileWidgetId) {
+            window.turnstile.reset(turnstileWidgetId)
+          }
+
+          setTimeout(() => {
+            submitText.innerHTML = originalHTML
+            submitBtn.classList.add("bg-primary", "border-primary")
+            submitBtn.classList.remove("bg-emerald-600", "border-emerald-600")
+            submitBtn.disabled = false
+          }, 4000)
+        } else {
+          // Handle specific backend error codes/responses
+          const errorMessage =
+            data.message ||
+            data.error?.message ||
+            "Failed to send message. Please try again."
+          const suggestedEmail =
+            data.data?.suggestedEmail ||
+            data.details?.suggestedEmail ||
+            data.error?.details?.suggestedEmail
+          showStatus(errorMessage, true, suggestedEmail)
+
+          submitText.innerHTML = originalHTML
+          submitBtn.disabled = false
+
+          if (window.turnstile && turnstileWidgetId) {
+            window.turnstile.reset(turnstileWidgetId)
+          }
+        }
+      } catch (error) {
+        console.error("Contact form error:", error)
+        showStatus(
+          "Network error occurred. Please check your connection or send an email directly to fi@amanillah.com",
+          true
+        )
+        submitText.innerHTML = originalHTML
+        submitBtn.disabled = false
+      }
+    })
+  }
+
+  document.addEventListener("astro:page-load", setupContactForm)
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupContactForm)
+  } else {
+    setupContactForm()
+  }
+</script>

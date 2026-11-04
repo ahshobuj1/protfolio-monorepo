@@ -1,0 +1,145 @@
+---
+import { projectsData, type Project } from "@/data/projects"
+import { CaseStudyApi } from "@/lib/api/caseStudyApi"
+import CaseStudyCard from "@/components/CaseStudy/cards/CaseStudyCard.astro"
+import ProjectCard from "@/components/CaseStudy/cards/ProjectCard.astro"
+import { Button } from "@workspace/ui/components/button"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowUpRight01Icon, BookOpen01Icon } from "@hugeicons/core-free-icons"
+
+// Fetch published case studies & projects dynamically from PostgreSQL API
+const fetchedStudies = await CaseStudyApi.fetchAllCaseStudies()
+
+const normalizeStatus = (status?: string): "Completed" | "Live" | "In Progress" | "Archived" => {
+  const cleaned = (status || "Completed").replace(/^Status:\s*/i, "")
+  if (cleaned === "Live" || cleaned === "In Progress" || cleaned === "Archived") return cleaned
+  return "Completed"
+}
+
+const apiProjects: Project[] = fetchedStudies.map((study, idx) => {
+  const metaObj = (study.metadata || []).reduce<Record<string, string>>((acc, item) => {
+    acc[item.label] = item.value
+    return acc
+  }, {})
+
+  const isDeepDive = study.projectType === "CASE_STUDY" || !study.projectType
+
+  return {
+    id: study.slug,
+    slug: study.slug,
+    title: study.title.includes("—")
+      ? study.title.split("—")[0]?.trim()
+      : study.title,
+    subtitle:
+      study.subtitle ||
+      (study.title.includes("—") ? study.title.split("—")[1]?.trim() : undefined),
+    description: study.description,
+    role: study.role || metaObj["Role"] || (isDeepDive ? "Full-Stack Architect" : "Open Source / Creator"),
+    impact:
+      study.impact ||
+      (study.description.length > 130
+        ? study.description.slice(0, 130) + "..."
+        : study.description),
+    tech: study.techStack || [],
+    links: {
+      live: study.liveUrl || undefined,
+      github: study.githubUrl || undefined,
+      caseStudy: isDeepDive ? `/case-study/${study.slug}` : undefined,
+    },
+    img: study.image || "/fi.png",
+    index: String(idx + 1).padStart(2, "0"),
+    status: normalizeStatus(study.status),
+    year: study.timeline || metaObj["Timeline"] || "2026",
+    hasCaseStudy: isDeepDive,
+    highlights:
+      study.highlights && study.highlights.length > 0
+        ? study.highlights
+        : (study.features || [])
+            .flatMap((f) => f.highlights || [])
+            .slice(0, 3),
+    metrics: (study.metrics || []).slice(0, 3).map((m) => ({
+      value: m.value,
+      label: m.label,
+    })),
+  }
+})
+
+const projects = apiProjects.length > 0 ? apiProjects : projectsData
+
+// Separate featured projects (deep dive case studies) from other projects
+const featuredProjects = projects.filter((p) => p.hasCaseStudy)
+const otherProjects = projects.filter((p) => !p.hasCaseStudy)
+---
+
+<section id="work" class="relative z-10 mx-auto pb-12 md:pb-16" data-grid-cross>
+  <!-- Section Header -->
+  <div class="relative mb-10 overflow-hidden text-center md:mb-14">
+    <div
+      class="diagonal-stripes pointer-events-none absolute inset-0 z-10 bg-background"
+      aria-hidden="true"
+    >
+    </div>
+    <div class="relative z-10 py-6">
+      <p class="section-label mb-3">Selected Case Studies &amp; Architecture</p>
+      <h2 class="section-title text-foreground">
+        Work <span class="text-primary">/</span> Projects
+      </h2>
+      <div class="accent-bar mx-auto mt-4 mb-2 w-56"></div>
+    </div>
+  </div>
+
+  <!-- Featured Case Studies (Unified Showcase Cards) -->
+  {featuredProjects.length > 0 && (
+    <div class="space-y-8 md:space-y-10">
+      {featuredProjects.map((p) => (
+        <CaseStudyCard project={p} />
+      ))}
+    </div>
+  )}
+
+  <!-- Personal Projects & Architecture Starters -->
+  {otherProjects.length > 0 && (
+    <div class="mt-14 space-y-6 md:mt-18">
+      <!-- Sub-section Header -->
+      <div class="flex items-center justify-between border-b border-border/70 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="font-mono text-xs font-bold tracking-[0.2em] text-primary">
+            // 02
+          </span>
+          <h3 class="text-base font-bold tracking-tight text-foreground uppercase sm:text-lg">
+            Personal Projects &amp; Starters
+          </h3>
+        </div>
+        <a
+          href="/case-study"
+          class="group/link font-mono text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1"
+        >
+          View all systems
+          <span class="transition-transform group-hover/link:translate-x-0.5">↗</span>
+        </a>
+      </div>
+
+      <!-- 2-Column Grid with Unified Project Cards -->
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {otherProjects.map((p) => (
+          <ProjectCard project={p} />
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Bottom CTA to Case Study Explorer -->
+  <div class="mt-12 text-center md:mt-16">
+    <a href="/case-study">
+      <Button
+        variant="outline"
+        size="lg"
+        className="gap-2 font-mono text-xs tracking-wider uppercase border-border/80 hover:border-primary hover:bg-primary/5 cursor-pointer shadow-xs"
+      >
+        <HugeiconsIcon icon={BookOpen01Icon} className="size-4 text-primary" />
+        Explore Full Case Study Archive
+        <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-4" />
+      </Button>
+    </a>
+  </div>
+</section>

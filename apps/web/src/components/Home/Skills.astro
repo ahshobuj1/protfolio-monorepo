@@ -1,0 +1,344 @@
+---
+import { Badge } from "@workspace/ui/components/badge"
+import { SkillApi, defaultSkillSections } from "@/lib/api/skillApi"
+
+// components/Home/Skills.astro
+
+const fetchedSections = await SkillApi.fetchPublicSkills()
+const skillSections =
+  fetchedSections && fetchedSections.length > 0
+    ? fetchedSections
+    : defaultSkillSections
+---
+
+<style>
+  /* Scan-line animation for skill rows */
+  @keyframes scan-in {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  @keyframes border-flow {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  /* Skill card item base & hover */
+  .skill-card-item {
+    transition:
+      transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 200ms ease,
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+    cursor: default;
+  }
+
+  /* Progressive enhancement: when JS observer is active, start hidden and animate on reveal */
+  .js-observer .skill-card-item {
+    opacity: 0;
+  }
+
+  .js-observer .skill-card-item.is-visible {
+    animation: scan-in 450ms ease forwards;
+  }
+
+  .skill-card-item:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Section column: subtle inner glow on hover */
+  .skill-col {
+    position: relative;
+    transition: background 300ms ease;
+  }
+  .skill-col::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 60% 40% at 50% 0%,
+      oklch(var(--primary) / 8%) 0%,
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
+  }
+  .skill-col:hover::before {
+    opacity: 1;
+  }
+
+  /* Corner brackets */
+  .corner-bracket::before,
+  .corner-bracket::after,
+  .corner-bracket > span::before,
+  .corner-bracket > span::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: oklch(var(--border));
+    border-style: solid;
+    transition:
+      width 220ms ease,
+      height 220ms ease,
+      border-color 220ms ease;
+  }
+  .corner-bracket::before {
+    top: 8px;
+    left: 8px;
+    border-width: 1.5px 0 0 1.5px;
+  }
+  .corner-bracket::after {
+    top: 8px;
+    right: 8px;
+    border-width: 1.5px 1.5px 0 0;
+  }
+  .corner-bracket > span::before {
+    bottom: 8px;
+    left: 8px;
+    border-width: 0 0 1.5px 1.5px;
+  }
+  .corner-bracket > span::after {
+    bottom: 8px;
+    right: 8px;
+    border-width: 0 1.5px 1.5px 0;
+  }
+  .skill-col:hover .corner-bracket::before,
+  .skill-col:hover .corner-bracket::after,
+  .skill-col:hover .corner-bracket > span::before,
+  .skill-col:hover .corner-bracket > span::after {
+    width: 14px;
+    height: 14px;
+    border-color: oklch(var(--primary) / 70%);
+  }
+
+  /* Section glow blobs */
+  .glow-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 500ms ease;
+  }
+  .skill-col:hover .glow-blob {
+    opacity: 1;
+  }
+</style>
+
+{
+  skillSections && skillSections.length > 0 && (
+    <section
+      id="skills"
+      data-grid-cross
+      class="relative z-10 container mx-auto border-b"
+    >
+      <div class="bg-background/40 shadow-sm backdrop-blur-3xl">
+        <!-- Top Header Section -->
+        <div class="relative overflow-hidden border-b border-border text-center">
+          <!-- Background Pattern (diagonal stripes themed to site palette) -->
+          <div
+            class="diagonal-stripes pointer-events-none absolute inset-0 z-10 bg-background"
+            aria-hidden="true"
+          >
+          </div>
+
+          <!-- Subtle ambient glow in header (Zero-CLS Radial Gradient) -->
+          <div
+            class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(0,220,200,0.1)_0%,transparent_70%)]"
+            aria-hidden="true"
+          >
+          </div>
+
+          <div class="relative z-10 py-8">
+            <p class="section-label mb-4 pt-6">
+              Practical tools, systems, and workflows I use to build products
+            </p>
+            <h2 class="section-title mb-4 text-foreground">
+              Skills <span class="text-primary"> & </span> Stack
+            </h2>
+
+            <!--  Accent bar -->
+            <div class="accent-bar mx-auto mb-6 w-40"></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Column Grid -->
+        <div
+          class={`grid grid-cols-1 divide-y divide-border ${
+            skillSections.length === 1
+              ? "md:grid-cols-1"
+              : skillSections.length === 2
+                ? "md:grid-cols-2 md:divide-x md:divide-y-0"
+                : skillSections.length === 4
+                  ? "md:grid-cols-2 lg:grid-cols-4 md:divide-x md:divide-y-0"
+                  : "md:grid-cols-3 md:divide-x md:divide-y-0"
+          }`}
+        >
+          {
+            skillSections.map((section, sectionIdx) => (
+              <div class="skill-col corner-bracket relative flex flex-col p-6 sm:p-8 md:p-10">
+                {/* Corner bracket span wrapper */}
+                <span aria-hidden="true" />
+
+                {/* Glow blob — unique position per column */}
+                <div
+                  class="glow-blob"
+                  style={`
+                    width: 160px; height: 160px;
+                    top: ${sectionIdx === 1 ? "30%" : "10%"};
+                    left: ${sectionIdx === 0 ? "10%" : sectionIdx === 1 ? "30%" : "50%"};
+                    background: oklch(var(--primary) / 12%);
+                  `}
+                />
+
+                {/* Section header */}
+                <div class="mb-7">
+                  <h3 class="flex items-start gap-1 text-4xl sm:text-5xl font-black tracking-tighter text-foreground">
+                    <span>{section.code}</span>
+                    {"  "}
+                    <span class="mt-1.5 text-lg font-normal tracking-normal text-muted-foreground">
+                      {section.ordinal}
+                      <sup class="text-[10px]">{section.suffix}</sup>
+                    </span>
+                  </h3>
+                  <div class="mt-2.5 flex items-center gap-2">
+                    <Badge variant="outline" className="border-primary/30 bg-primary/5 font-mono text-xs text-primary">
+                      {section.badge}
+                    </Badge>
+                  </div>
+
+                  {/* Thin separator under badge */}
+                  <div class="mt-4 h-px bg-linear-to-r from-primary/30 via-primary/10 to-transparent" />
+                </div>
+
+                {/* Skill rows */}
+                <div class="space-y-3">
+                  {section.items.map((item, itemIdx) => (
+                    <div
+                      class="skill-card-item group/row relative flex flex-col gap-2 rounded-xs border border-border/60 bg-card/30 p-3.5 backdrop-blur-xs transition-all duration-200 hover:border-primary/40 hover:bg-card/75 hover:shadow-[0_4px_16px_-4px_oklch(var(--primary)/12%)]"
+                      style={`animation-delay: ${sectionIdx * 80 + itemIdx * 40}ms;`}
+                    >
+                      {/* Top row: Title + Level Meter */}
+                      <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                          <span
+                            class="size-1.5 rounded-full bg-primary/40 transition-colors duration-200 group-hover/row:bg-primary group-hover/row:shadow-[0_0_6px_oklch(var(--primary))]"
+                            aria-hidden="true"
+                          />
+                          <h4 class="font-mono text-xs sm:text-sm font-semibold tracking-tight text-foreground transition-colors duration-200 group-hover/row:text-primary">
+                            {item.title}
+                          </h4>
+                        </div>
+
+                        {/* Skill Level mini meter */}
+                        {typeof item.level === "number" && (
+                          <div
+                            role="img"
+                            class="flex items-center gap-0.5"
+                            title={`Proficiency: ${item.level}/5`}
+                            aria-label={`Proficiency: ${item.level} of 5`}
+                          >
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <span
+                                aria-hidden="true"
+                                class={`h-1 w-2.5 rounded-2xs transition-colors duration-200 ${
+                                  i < (item.level || 5)
+                                    ? "bg-primary/70 group-hover/row:bg-primary"
+                                    : "bg-muted-foreground/20"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Bottom row: Clean micro tags */}
+                      <div class="flex flex-wrap items-center gap-1.5 pl-3.5">
+                        {item.left && (
+                          <span class="rounded-xs border border-border/60 bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground transition-colors duration-200 group-hover/row:border-primary/30 group-hover:text-foreground">
+                            {item.left}
+                          </span>
+                        )}
+                        {item.right && (
+                          <span class="rounded-xs border border-border/60 bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] font-medium text-muted-foreground transition-colors duration-200 group-hover/row:border-primary/30 group-hover:text-foreground">
+                            {item.right}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<script>
+  function setupSkillsObserver() {
+    const section = document.getElementById("skills")
+    if (!section) return
+
+    const rows = section.querySelectorAll<HTMLElement>(".skill-card-item")
+    if (!rows.length) return
+
+    if (!("IntersectionObserver" in window)) {
+      rows.forEach((row) => row.classList.add("is-visible"))
+      return
+    }
+
+    section.classList.add("js-observer")
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible")
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      {
+        threshold: 0.05,
+        rootMargin: "50px 0px 50px 0px",
+      }
+    )
+
+    rows.forEach((row) => observer.observe(row))
+  }
+
+  // Ensure compatibility with Astro's View Transitions & standard DOM
+  document.addEventListener("astro:page-load", setupSkillsObserver)
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", setupSkillsObserver)
+  } else {
+    setupSkillsObserver()
+  }
+</script>
+
