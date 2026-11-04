@@ -1,0 +1,44 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Local env files
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+!.env.example
+!.env.production.example
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+dist
+
+# Astro
+.astro
+
+# Debug
+npm-debug.log*
+
+# Misc
+.DS_Store
+*.pem
+
+# Logs
+logs
+
+# Uploads
+uploads
+
+#next
+.next
+config.bat

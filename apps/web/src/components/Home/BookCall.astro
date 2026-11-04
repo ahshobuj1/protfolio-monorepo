@@ -1,0 +1,38 @@
+---
+import BookingSection from "@/components/Booking/BookingSection"
+---
+
+<section id="book-call" class="relative z-10 mx-auto" data-grid-cross>
+  <!-- Section Header -->
+  <div class="relative overflow-hidden text-center">
+    <!-- Diagonal Stripes Pattern -->
+    <div
+      class="diagonal-stripes pointer-events-none absolute inset-0 z-10 bg-background"
+      aria-hidden="true"
+    >
+    </div>
+
+    <!-- Ambient Glow (Zero-CLS Radial Gradient) -->
+    <div
+      class="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(0,220,200,0.1)_0%,transparent_70%)]"
+      aria-hidden="true"
+    >
+    </div>
+
+    <div class="relative z-10 py-6">
+      <p class="section-label mb-3">Schedule a 1-on-1 Session</p>
+
+      <h2 class="section-title text-foreground">
+        Book a <span class="text-primary">/</span> Call
+      </h2>
+
+      <!-- Accent bar -->
+      <div class="accent-bar mx-auto mt-4 mb-4 w-60"></div>
+    </div>
+  </div>
+
+  <!-- Interactive Booking React Island -->
+  <div class="w-full">
+    <BookingSection client:visible />
+  </div>
+</section>

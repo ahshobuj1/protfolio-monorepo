@@ -1,0 +1,46 @@
+{
+  "name": "Portfolio",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "node init && turbo build",
+    "dev": "node init && turbo dev",
+    "lint": "turbo lint",
+    "format": "turbo format",
+    "typecheck": "turbo typecheck",
+    "check:env": "bun --filter=@workspace/env check",
+    "db:generate": "turbo db:generate",
+    "db:migrate": "bun --filter=@workspace/db db:migrate",
+    "db:migrate:prod": "bun --filter=@workspace/db db:migrate:prod",
+    "db:seed": "bun --filter=@workspace/db db:seed",
+    "db:seed:prod": "bun --filter=@workspace/db db:seed:prod",
+    "db:studio": "bun --filter=@workspace/db db:studio",
+    "db:push": "bun --filter=@workspace/db db:push",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "@tanstack/react-table": "^9.1.2",
+    "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "turbo": "^2.8.17",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "bun@1.3.8",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@aws-sdk/client-s3": "^3.1111.0",
+    "@aws-sdk/s3-request-presigner": "^3.1111.0",
+    "googleapis": "^176.0.0",
+    "lucide-react": "^1.31.0"
+  }
+}

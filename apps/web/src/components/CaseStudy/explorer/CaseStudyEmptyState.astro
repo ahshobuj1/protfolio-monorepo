@@ -1,0 +1,116 @@
+---
+import { Icon } from "astro-icon/components"
+
+interface Props {
+  suggestedTech?: string[]
+  class?: string
+}
+
+const {
+  suggestedTech = [
+    "TypeScript",
+    "Next.js",
+    "PostgreSQL",
+    "RabbitMQ",
+    "Redis",
+    "Docker",
+    "Prisma",
+    "Bun",
+  ],
+  class: className = "",
+} = Astro.props
+---
+
+<div
+  data-cs-empty-state
+  class={`relative my-12 hidden overflow-hidden border border-dashed border-border/80 bg-background/40 p-8 sm:p-12 text-center backdrop-blur-sm transition-all duration-300 ${className}`}
+>
+  {/* Cyberpunk corner brackets */}
+  <div
+    class="pointer-events-none absolute top-2 left-2 h-3.5 w-3.5 border-t-[1.5px] border-l-[1.5px] border-border"
+  >
+  </div>
+  <div
+    class="pointer-events-none absolute top-2 right-2 h-3.5 w-3.5 border-t-[1.5px] border-r-[1.5px] border-border"
+  >
+  </div>
+  <div
+    class="pointer-events-none absolute bottom-2 left-2 h-3.5 w-3.5 border-b-[1.5px] border-l-[1.5px] border-border"
+  >
+  </div>
+  <div
+    class="pointer-events-none absolute right-2 bottom-2 h-3.5 w-3.5 border-r-[1.5px] border-b-[1.5px] border-border"
+  >
+  </div>
+
+  <div class="mx-auto flex max-w-md flex-col items-center">
+    {/* Icon with glowing pulse ring */}
+    <div
+      class="relative mb-5 flex h-16 w-16 items-center justify-center rounded-none border border-primary/30 bg-primary/10 text-primary shadow-[0_0_24px_oklch(var(--primary)/20%)]"
+    >
+      <Icon name="mdi:file-search-outline" class="size-8" />
+      <span class="absolute -top-1 -right-1 flex h-3 w-3">
+        <span
+          class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75"
+        ></span>
+        <span class="relative inline-flex h-3 w-3 rounded-full bg-primary"
+        ></span>
+      </span>
+    </div>
+
+    {/* Terminal Code Status */}
+    <span
+      class="inline-flex items-center gap-1.5 border border-border bg-muted/60 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground uppercase"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+      STATUS: 404 // NO_ARCHITECTURAL_MATCHES
+    </span>
+
+    {/* Heading */}
+    <h3
+      class="mt-4 font-mono text-lg font-bold tracking-tight text-foreground sm:text-xl"
+    >
+      No Engineered Systems Found
+    </h3>
+
+    {/* Dynamic text description */}
+    <p class="mt-2 text-sm leading-relaxed text-muted-foreground">
+      No projects or case studies matched your current search filters. Try
+      clearing the search term or resetting active technology tags.
+    </p>
+
+    {/* Action: Reset Filter */}
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <button
+        type="button"
+        data-cs-reset-all-btn
+        class="inline-flex cursor-pointer items-center gap-2 border border-primary bg-primary px-4 py-2 font-mono text-xs font-bold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-[0_0_16px_oklch(var(--primary)/30%)]"
+      >
+        <Icon name="mdi:refresh" class="size-4" />
+        <span>Reset All Filters</span>
+      </button>
+    </div>
+
+    {/* Suggested Technology Tags */}
+    {
+      suggestedTech.length > 0 && (
+        <div class="mt-8 w-full border-t border-border/50 pt-5">
+          <span class="font-mono text-[11px] tracking-wider text-muted-foreground/80 uppercase">
+            Suggested Tech Stacks:
+          </span>
+          <div class="mt-2.5 flex flex-wrap items-center justify-center gap-1.5">
+            {suggestedTech.map((tech) => (
+              <button
+                type="button"
+                data-cs-suggested-chip={tech.toLowerCase()}
+                class="cursor-pointer border border-border/80 bg-background/60 px-2.5 py-1 font-mono text-[11px] text-muted-foreground transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
+              >
+                #{tech}
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    }
+  </div>
+</div>

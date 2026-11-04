@@ -1,0 +1,200 @@
+---
+// src/components/GridLines.astro
+interface Props {
+  lines?: number[]
+}
+const { lines = [-0.04, 0, 1, 1.04] } = Astro.props
+---
+
+<!-- GridLines Canvas Component -->
+<canvas
+  id="grid-lines-canvas"
+  class="pointer-events-none absolute top-0 left-0 z-20"
+  style="width:100%;"></canvas>
+
+<script is:inline define:vars={{ lines }}>
+  ;(function () {
+    const canvas = document.getElementById("grid-lines-canvas")
+    if (!canvas) return
+    const ctx = canvas.getContext("2d", { alpha: true })
+    if (!ctx) return
+
+    const lineOffsets =
+      typeof lines !== "undefined" && Array.isArray(lines)
+        ? lines
+        : [-0.04, 0, 1, 1.04]
+
+    // --- CONFIG ---
+    const LINE_WIDTH = 0.75
+    const CROSS_ARM = 6
+
+    let lineXs = []
+    let absYs = []
+    let lastW = 0
+    function renderGrid(W, H) {
+      if (W === 0 || H === 0) return
+      ctx.clearRect(0, 0, W, H)
+
+      const LINE_COLOR =
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--grid-line-color")
+          .trim() || "rgba(0,220,200,0.18)"
+      const CROSS_COLOR =
+        getComputedStyle(document.documentElement)
+          .getPropertyValue("--grid-cross-color")
+          .trim() || "rgba(0,220,200,0.55)"
+
+      // BATCH 1: Continuous Vertical & Horizontal Grid Lines
+      ctx.strokeStyle = LINE_COLOR
+      ctx.lineWidth = LINE_WIDTH
+      ctx.beginPath()
+
+      // Vertical lines
+      for (let i = 0; i < lineXs.length; i++) {
+        const x = lineXs[i] + 0.5
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, H)
+      }
+
+      // Horizontal lines at section boundaries
+      for (let i = 0; i < absYs.length; i++) {
+        const y = absYs[i] + 0.5
+        ctx.moveTo(0, y)
+        ctx.lineTo(W, y)
+      }
+
+      ctx.stroke()
+
+      // BATCH 2: Precision Crosshairs (+)
+      ctx.strokeStyle = CROSS_COLOR
+      ctx.lineWidth = 1
+      ctx.beginPath()
+
+      for (let i = 0; i < absYs.length; i++) {
+        const y = absYs[i] + 0.5
+        for (let j = 0; j < lineXs.length; j++) {
+          const x = lineXs[j] + 0.5
+          ctx.moveTo(x - CROSS_ARM, y)
+          ctx.lineTo(x + CROSS_ARM, y)
+          ctx.moveTo(x, y - CROSS_ARM)
+          ctx.lineTo(x, y + CROSS_ARM)
+        }
+      }
+
+      ctx.stroke()
+    }
+
+    function updateGrid() {
+      // PHASE 1: BATCH ALL DOM READS FIRST (Avoid forced layout thrashing)
+      const W = Math.round(
+        document.documentElement.clientWidth || window.innerWidth || 0
+      )
+      const H = Math.round(
+        Math.max(
+          document.body.scrollHeight || 0,
+          document.documentElement.scrollHeight || 0,
+          document.body.offsetHeight || 0,
+          document.documentElement.offsetHeight || 0
+        )
+      )
+      if (W === 0 || H === 0) return
+
+      // 1. Calculate vertical X lines based on reference container
+      const el =
+        document.querySelector("main.container") ||
+        document.querySelector("main") ||
+        document.querySelector(".container")
+
+      const { left, width } = el
+        ? el.getBoundingClientRect()
+        : { left: 0, width: W }
+
+      lineXs = lineOffsets.map((f) => Math.round(left + f * width))
+
+      // 2. Calculate horizontal Y positions for all marked sections
+      absYs = []
+      const crossElements = document.querySelectorAll("[data-grid-cross]")
+      const scrollY = window.scrollY || window.pageYOffset || 0
+
+      for (let i = 0; i < crossElements.length; i++) {
+        const element = crossElements[i]
+        const rect = element.getBoundingClientRect()
+        if (rect.height === 0 && rect.width === 0) continue
+
+        const topY = Math.round(rect.top + scrollY)
+        const bottomY = Math.round(rect.bottom + scrollY)
+
+        if (!absYs.includes(topY)) absYs.push(topY)
+        if (!absYs.includes(bottomY)) absYs.push(bottomY)
+      }
+
+      absYs.sort((a, b) => a - b)
+
+      // PHASE 2: BATCH ALL DOM WRITES & CANVAS RENDERING
+      if (canvas.width !== W || canvas.height !== H) {
+        lastW = W
+        lastH = H
+        canvas.width = W
+        canvas.height = H
+      }
+
+      renderGrid(W, H)
+    }
+
+    // --- SCHEDULED DEBOUNCED UPDATES ---
+    let debounceTimer = null
+    function scheduleUpdate(delay = 60) {
+      if (debounceTimer) clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(() => {
+        requestAnimationFrame(updateGrid)
+      }, delay)
+    }
+
+    // Single ResizeObserver on the container layout, not on every individual subtree mutation
+    let ro = null
+    if (typeof ResizeObserver !== "undefined") {
+      ro = new ResizeObserver(() => {
+        scheduleUpdate(80)
+      })
+      const mainEl = document.querySelector("main")
+      if (mainEl) ro.observe(mainEl)
+    }
+
+    window.addEventListener("resize", () => scheduleUpdate(100), {
+      passive: true,
+    })
+    window.addEventListener("orientationchange", () => scheduleUpdate(150), {
+      passive: true,
+    })
+    window.addEventListener("grid-refresh", () => scheduleUpdate(0), {
+      passive: true,
+    })
+
+    function init() {
+      if ("requestIdleCallback" in window) {
+        requestIdleCallback(() => scheduleUpdate(0), { timeout: 2000 })
+      } else {
+        setTimeout(() => scheduleUpdate(0), 100)
+      }
+    }
+
+    if (
+      document.readyState === "complete" ||
+      document.readyState === "interactive"
+    ) {
+      init()
+    } else {
+      window.addEventListener("DOMContentLoaded", init, { once: true })
+    }
+
+    document.addEventListener("astro:page-load", () => {
+      const mainEl = document.querySelector("main")
+      if (ro && mainEl) ro.observe(mainEl)
+      if ("requestIdleCallback" in window) {
+        requestIdleCallback(() => scheduleUpdate(50), { timeout: 2000 })
+      } else {
+        setTimeout(() => scheduleUpdate(50), 50)
+      }
+    })
+  })()
+</script>

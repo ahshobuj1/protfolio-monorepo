@@ -1,0 +1,65 @@
+---
+import { Icon } from "astro-icon/components"
+
+interface Props {
+  totalCount: number
+  postsPerPage: number
+  activeCategory?: string
+  class?: string
+}
+
+const {
+  totalCount,
+  postsPerPage,
+  activeCategory = "all",
+  class: className = "",
+} = Astro.props
+
+const initialTo = Math.min(postsPerPage, totalCount)
+---
+
+<div class={`relative overflow-hidden text-center ${className}`}>
+  <!-- Diagonal stripe background -->
+  <div
+    class="diagonal-stripes pointer-events-none absolute inset-0 z-10 bg-background"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="relative z-10 py-6">
+    <p class="section-label">Browse &amp; discover</p>
+    <h2 class="section-title text-foreground">
+      <span data-journal-title class="text-foreground">
+        All{" "}
+        <span class="text-primary">/</span>{" "}
+        Tech Articles &amp; Stories
+      </span>
+    </h2>
+    <div class="accent-bar mx-auto mt-3 mb-0 w-48"></div>
+  </div>
+
+  <!-- Live count badge (floating bottom right of header) -->
+  <div class="relative z-20 flex items-center justify-center gap-3 pb-4">
+    <span
+      class="inline-flex items-center gap-1.5 border border-primary/30 bg-primary/8 px-3 py-1 font-mono text-[10px] font-semibold text-primary uppercase"
+    >
+      <Icon name="mdi:tag-outline" class="size-3" />
+      <span data-active-category-text>{activeCategory.toUpperCase()}</span>
+    </span>
+    <span
+      class="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground"
+    >
+      <Icon
+        name="mdi:newspaper-variant-outline"
+        class="size-3.5 text-primary/60"
+      />
+      <span data-showing-count>
+        {
+          totalCount > 0
+            ? `SHOWING 1-${initialTo} OF ${totalCount} ARTICLES`
+            : "0 ARTICLES AVAILABLE"
+        }
+      </span>
+    </span>
+  </div>
+</div>

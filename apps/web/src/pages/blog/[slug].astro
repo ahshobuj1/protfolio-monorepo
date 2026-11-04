@@ -1,0 +1,353 @@
+---
+import MySiteLayout from "@/layouts/MySiteLayout.astro"
+import BlogContentBody from "@/components/Blog/article/BlogContentBody.astro"
+import BlogArticleNav from "@/components/Blog/article/BlogArticleNav.astro"
+import BlogCard from "@/components/Blog/cards/BlogCard.astro"
+import NewsletterSection from "@/components/Newsletter/NewsletterSection.astro"
+import SectionDivider from "@/components/SectionDivider.astro"
+import BlogSEO from "@/components/SEO/BlogSEO.astro"
+import {
+  getAllBlogPostsAsync,
+  getBlogPostBySlugAsync,
+  getCategorySlug,
+  type BlogPost,
+} from "@/data/blogPosts"
+
+export async function getStaticPaths() {
+  const posts = await getAllBlogPostsAsync()
+  const fullDetails = await Promise.all(
+    posts.map(async (post) => {
+      const details = await getBlogPostBySlugAsync(post.slug)
+      return {
+        params: { slug: post.slug },
+        props: {
+          post: details?.post || post,
+          prevPost: details?.prevPost || null,
+          nextPost: details?.nextPost || null,
+          relatedPosts: details?.relatedPosts || [],
+        },
+      }
+    })
+  )
+  return fullDetails
+}
+
+const { slug: rawSlug } = Astro.params
+const propPost = Astro.props.post
+const slug = rawSlug || propPost?.slug
+
+let currentPost: BlogPost | undefined = propPost
+let prevPost = Astro.props.prevPost || null
+let nextPost = Astro.props.nextPost || null
+let relatedPosts = Astro.props.relatedPosts || []
+
+if (!slug && !currentPost) {
+  return Astro.redirect("/404")
+}
+
+// On-demand fetch fallback for dynamic rendering or when props are not pre-populated
+if ((!currentPost || !currentPost.content) && slug) {
+  const postData = await getBlogPostBySlugAsync(slug)
+
+  // If post has moved to a new URL, perform a 301 Permanent Redirect
+  if (postData?.redirected && postData.destination) {
+    return Astro.redirect(
+      postData.destination,
+      (postData.statusCode as 301 | 302 | 307 | 308) || 301
+    )
+  }
+
+  if (postData?.post) {
+    currentPost = postData.post
+    prevPost = postData.prevPost || prevPost
+    nextPost = postData.nextPost || nextPost
+    if (postData.relatedPosts && postData.relatedPosts.length > 0) {
+      relatedPosts = postData.relatedPosts
+    }
+  }
+}
+
+if (!currentPost) {
+  return Astro.redirect("/404")
+}
+
+if (relatedPosts.length === 0 && slug) {
+  const all = await getAllBlogPostsAsync()
+  relatedPosts = all.filter((p) => p.slug !== slug).slice(0, 3)
+}
+---
+
+<MySiteLayout>
+  <!-- SEO & Structured Data Schema Injection -->
+  <Fragment slot="head">
+    <BlogSEO post={currentPost} />
+  </Fragment>
+
+  <!-- Top Reading Progress Bar (docked directly to bottom edge of sticky header) -->
+  <div
+    id="top-progress-track"
+    class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-[2.5px] overflow-hidden opacity-0 transition-opacity duration-300"
+  >
+    <div
+      id="top-reading-progress"
+      class="h-full w-full origin-left bg-primary will-change-transform"
+      style="transform: scaleX(0);"
+    >
+    </div>
+  </div>
+
+  <!-- Centered Breadcrumbs Bar -->
+  <nav
+    aria-label="Breadcrumbs"
+    class="border-b border-border/60 bg-background/50 py-2.5 sm:py-3.5"
+  >
+    <div class="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
+      <div
+        class="flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-muted-foreground sm:gap-2 sm:text-xs"
+      >
+        <a href="/" class="transition-colors hover:text-foreground">Home</a>
+        <span>/</span>
+        <a href="/blog" class="transition-colors hover:text-foreground">Blog</a>
+        <span>/</span>
+        <a
+          href={`/blog/category/${getCategorySlug(currentPost.categorySlug || currentPost.category)}`}
+          class="text-primary hover:underline"
+        >
+          {currentPost.category}
+        </a>
+        <span>/</span>
+        <span
+          class="max-w-[150px] truncate font-semibold text-foreground sm:max-w-xs"
+          >{currentPost.title}</span
+        >
+      </div>
+    </div>
+  </nav>
+
+  <main class="w-full py-2 sm:py-4" data-post-slug={currentPost.slug}>
+    {/* Reader Body (Main Article + Sticky Right TOC) */}
+    <BlogContentBody post={currentPost} />
+
+    {/* Previous & Next Article Navigation Container */}
+    <div class="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8">
+      {/* Decorative section divider */}
+      <div class="my-3 flex items-center gap-3 sm:my-4 sm:gap-4">
+        <div
+          class="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"
+        >
+        </div>
+        <span
+          class="font-mono text-[9px] tracking-widest text-primary/40 uppercase sm:text-[10px]"
+          >CONTINUE</span
+        >
+        <div
+          class="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"
+        >
+        </div>
+      </div>
+
+      {/* Previous & Next Article Navigation */}
+      <BlogArticleNav prevPost={prevPost} nextPost={nextPost} />
+    </div>
+
+    {
+      /* Related Articles — Dedicated Full-Width Section with SectionDivider & Gridline Alignment */
+    }
+    {
+      relatedPosts.length > 0 && (
+        <>
+          <SectionDivider />
+          <section class="relative z-10 w-full" data-grid-cross>
+            <div class="overflow-hidden border-r border-l border-border bg-background">
+              {/* Section Header Bar */}
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card/60 px-3.5 py-2.5 sm:px-6 sm:py-3">
+                <div class="flex items-center gap-1.5 font-mono text-[11px] font-bold tracking-wider text-primary uppercase sm:gap-2 sm:text-xs">
+                  <span class="inline-block h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_6px_oklch(var(--primary))]" />
+                  <span>// CONTINUE READING RELATED ARTICLES</span>
+                </div>
+                <a
+                  href="/blog/page/1"
+                  class="group/link inline-flex items-center gap-1 font-mono text-[10px] text-muted-foreground transition-colors hover:text-primary sm:gap-1.5 sm:text-xs"
+                >
+                  <span>View All Articles</span>
+                  <span class="transition-transform duration-200 group-hover/link:translate-x-0.5">
+                    →
+                  </span>
+                </a>
+              </div>
+
+              {/* Zero-Gap 3-Column Responsive Grid */}
+              <div class="grid grid-cols-1 divide-y divide-border md:grid-cols-3 md:divide-x md:divide-y-0">
+                {relatedPosts.map((relatedPost) => (
+                  <BlogCard
+                    post={relatedPost}
+                    class="rounded-none border-0 bg-transparent shadow-none"
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+          <SectionDivider />
+        </>
+      )
+    }
+
+    {/* Newsletter Subscription Section */}
+    <div class="pb-10">
+      <NewsletterSection
+        title="Enjoyed this Article?"
+        subtitle="Get notified as soon as new tech deep dives, AI analyses, semiconductor market stories, and engineering guides are published."
+        source="blog_detail"
+        idPrefix="blog-detail-newsletter"
+      />
+    </div>
+  </main>
+</MySiteLayout>
+
+<script>
+  import { BlogApi } from "@/lib/api/blogApi"
+
+  // Top reading progress bar (docked directly to sticky header)
+  function initTopProgress() {
+    const track = document.getElementById("top-progress-track")
+    const bar = document.getElementById("top-reading-progress")
+    const header = document.querySelector("header")
+    if (!track || !bar || !header) return
+
+    // Dock track directly inside header so it is locked to the sticky header on mobile
+    if (track.parentElement !== header) {
+      header.appendChild(track)
+    }
+    track.classList.remove("opacity-0")
+    track.classList.add("opacity-100")
+
+    let ticking = false
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            const scrollY = window.scrollY
+            const docHeight =
+              document.documentElement.scrollHeight - window.innerHeight
+            const progress =
+              docHeight > 0 ? Math.min(1, Math.max(0, scrollY / docHeight)) : 0
+            bar.style.transform = `scaleX(${progress})`
+            ticking = false
+          })
+          ticking = true
+        }
+      },
+      { passive: true }
+    )
+  }
+
+  // Real-time View Counter & Telemetry Trigger
+  function initViewCounter() {
+    const mainEl = document.querySelector<HTMLElement>("main[data-post-slug]")
+    if (!mainEl) return
+    const slug = mainEl.dataset.postSlug
+    if (!slug) return
+
+    const updateViewSpans = (viewsCount: number) => {
+      const viewSpans = document.querySelectorAll<HTMLElement>(
+        "[data-post-views-count]"
+      )
+      const formatted =
+        viewsCount >= 1000
+          ? `${(viewsCount / 1000).toFixed(viewsCount % 1000 === 0 ? 0 : 1)}k`
+          : `${viewsCount}`
+      viewSpans.forEach((span) => {
+        span.textContent = `${formatted} Views`
+      })
+    }
+
+    // Avoid duplicate increments in the same page view session
+    const sessionKey = `view_recorded_${slug}`
+    if (!sessionStorage.getItem(sessionKey)) {
+      sessionStorage.setItem(sessionKey, "true")
+      BlogApi.recordPostView(slug)
+        .then((result) => {
+          if (result && typeof result.views === "number") {
+            updateViewSpans(result.views)
+          }
+        })
+        .catch(() => {})
+    } else {
+      // If already recorded in this session, fetch the current live view count without incrementing
+      BlogApi.fetchPostBySlug(slug, false)
+        .then((result) => {
+          if (result?.post && result.post.views) {
+            const rawViews =
+              parseInt(String(result.post.views).replace(/[^0-9]/g, "")) || 0
+            if (rawViews > 0) {
+              updateViewSpans(rawViews)
+            }
+          }
+        })
+        .catch(() => {})
+    }
+  }
+
+  // Real-time Likes Counter Sync
+  function initLikesSync() {
+    const mainEl = document.querySelector<HTMLElement>("main[data-post-slug]")
+    if (!mainEl) return
+    const slug = mainEl.dataset.postSlug
+    if (!slug) return
+
+    const updateLikesDisplay = () => {
+      const raw = localStorage.getItem(`portfolio_reactions_${slug}`)
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw)
+          if (typeof parsed.likes === "number") {
+            const likeSpans = document.querySelectorAll<HTMLElement>(
+              "[data-post-likes-count]"
+            )
+            likeSpans.forEach((span) => {
+              span.textContent = String(parsed.likes)
+            })
+          }
+        } catch (_) {}
+      }
+    }
+
+    // Always fetch live reactions from server on page load
+    BlogApi.fetchPostReactions(slug)
+      .then((res) => {
+        if (res && typeof res.likesCount === "number") {
+          const likeSpans = document.querySelectorAll<HTMLElement>(
+            "[data-post-likes-count]"
+          )
+          likeSpans.forEach((span) => {
+            span.textContent = String(res.likesCount)
+          })
+        }
+      })
+      .catch(() => {})
+
+    // Update on custom engagement event and storage event
+    window.addEventListener("portfolio:engagement-change", ((e: Event) => {
+      const customEvent = e as CustomEvent<{ slug?: string }>
+      if (!customEvent.detail || customEvent.detail.slug === slug) {
+        updateLikesDisplay()
+      }
+    }) as EventListener)
+    window.addEventListener("storage", (e) => {
+      if (e.key === `portfolio_reactions_${slug}`) {
+        updateLikesDisplay()
+      }
+    })
+    updateLikesDisplay()
+  }
+
+  function initAll() {
+    initTopProgress()
+    initViewCounter()
+    initLikesSync()
+  }
+
+  document.addEventListener("DOMContentLoaded", initAll)
+  document.addEventListener("astro:page-load", initAll)
+</script>

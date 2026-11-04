@@ -1,0 +1,183 @@
+info:
+  name: Admin - Create Case Study
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{baseUrl}}/case-studies/v1/admin/create"
+  headers:
+    - name: Authorization
+      value: Bearer {{authToken}}
+  body:
+    type: json
+    data: |-
+      {
+        "title": "MojaCares - Intelligent EHR & Clinical Insights Platform",
+        "slug": "mojacares",
+        "subtitle": "Full-stack healthcare management system with automated medical data extraction and real-time vitals tracking",
+        "description": "Architected and engineered a comprehensive, full-stack Electronic Health Record (EHR) platform designed to unify patient histories and automate clinical workflows. The system features a responsive frontend clinical dashboard seamlessly integrated with a robust Node.js backend, providing intelligent health insights through automated extraction of unstructured medical documents and longitudinal tracking of patient vitals.",
+        "projectType": "CASE_STUDY",
+        "status": "DRAFT",
+        "projectStatus": "Production Ready",
+        "order": 2,
+        "featured": true,
+        "pinned": true,
+        "techStack": [
+          "Next.js",
+          "React",
+          "Tailwind CSS",
+          "Shadcn UI",
+          "Node.js",
+          "TypeScript",
+          "PostgreSQL",
+          "Prisma ORM",
+          "AWS S3",
+          "JWT Auth"
+        ],
+        "liveUrl": "https://mojacares.com",
+        "githubUrl": "",
+        "image": "mojacares_dashboard_overview.jpg",
+        "imageLabel": "MojaCares Clinical Dashboard & Patient Management",
+        "role": "Lead Architect & Full Stack Engineer",
+        "timeline": "2026",
+        "client": "MojaCares",
+        "impact": "Transformed fragmented patient data into actionable clinical insights by delivering a unified, high-performance web application that automates medical record parsing and streamlines practitioner chart reviews.",
+        "highlights": [
+          "Developed a highly responsive, component-driven clinical frontend using Next.js, React, Tailwind CSS, and Shadcn UI.",
+          "Engineered a secure, JWT-authenticated REST API for managing patient lists, visit histories, and vital metrics[cite: 1].",
+          "Architected a type-safe relational database schema utilizing Prisma ORM and PostgreSQL to map complex clinical entities[cite: 1].",
+          "Implemented an automated data extraction pipeline to parse unstructured clinical documents (e.g., Complete Blood Counts, Vision Tests) into queryable database records[cite: 1].",
+          "Integrated AWS S3 (us-east-1) via the AWS SDK for HIPAA-compliant, secure medical document and PDF storage[cite: 1]."
+        ],
+        "metadata": [
+          { "label": "Architecture", "value": "Full-Stack Web App", "icon": "Layers" },
+          { "label": "Infrastructure", "value": "Next.js + Node.js + PostgreSQL", "icon": "Server" },
+          { "label": "Domain", "value": "Healthcare / EHR", "icon": "Briefcase" },
+          { "label": "Storage", "value": "AWS S3", "icon": "Cloud" }
+        ],
+        "contextBlocks": [
+          { 
+            "label": "The Challenge", 
+            "body": "Healthcare providers struggled with fragmented systems, requiring them to manually switch between visualizing real-time patient vitals and reviewing unstructured data from uploaded medical documents like PDF lab reports. This disconnected workflow led to charting delays and obscured long-term health trends." 
+          },
+          { 
+            "label": "The Solution", 
+            "body": "Engineered a centralized, full-stack platform featuring an intuitive Next.js clinical dashboard. The frontend consumes a secure Node.js REST API that manages relational patient data and interacts with an automated AWS S3 pipeline designed to extract and structure data from raw clinical files." 
+          },
+          { 
+            "label": "The Outcome", 
+            "body": "Delivered a production-ready application that instantly aggregates vital metrics and generates comprehensive visit summaries. Practitioners now benefit from interactive UI visualizations of patient histories and automated insights, drastically reducing manual data entry." 
+          }
+        ],
+        "architectureLayers": [
+          {
+            "name": "Frontend & UI Layer",
+            "description": "Interactive clinical dashboards and data visualization",
+            "items": [
+              { "title": "Next.js & React", "subtitle": "Server-side rendering and complex state management" },
+              { "title": "Tailwind CSS & Shadcn UI", "subtitle": "Accessible, responsive, and consistent clinical interfaces" }
+            ]
+          },
+          {
+            "name": "Application & API Layer",
+            "description": "Secure, JWT-authenticated backend services",
+            "items": [
+              { "title": "Node.js & TypeScript", "subtitle": "Strongly-typed business logic and REST endpoints" },
+              { "title": "Authentication", "subtitle": "JWT-based security for practitioner and patient access[cite: 1]" }
+            ]
+          },
+          {
+            "name": "Data Access Layer",
+            "description": "Relational mapping for complex medical histories",
+            "items": [
+              { "title": "Prisma ORM", "subtitle": "Type-safe database interactions and migrations[cite: 1]" },
+              { "title": "PostgreSQL", "subtitle": "Primary storage for Bookings, PreviousVisits, and HealthInsights[cite: 1]" }
+            ]
+          },
+          {
+            "name": "Storage & Document Layer",
+            "description": "Secure document handling and intelligent extraction",
+            "items": [
+              { "title": "AWS S3", "subtitle": "Secure clinical document storage in specified regional buckets[cite: 1]" },
+              { "title": "Data Parsing", "subtitle": "Extraction of clinical metrics from unstructured TXT/PDF reports[cite: 1]" }
+            ]
+          }
+        ],
+        "features": [
+          {
+            "title": "Interactive Clinical Dashboard",
+            "description": "A comprehensive React-based UI providing practitioners with an immediate overview of their patient roster, upcoming appointments, and pending lab results through dynamic tables and visual charts.",
+            "mediaType": "Image",
+            "mediaLabel": "Dashboard Overview",
+            "media": "CaptureX_2026-09-04_105257_mojacares.com.png",
+            "tags": ["Next.js", "UI/UX", "Dashboard"]
+          },
+          {
+            "title": "Longitudinal Vitals Tracking",
+            "description": "Dedicated interfaces and backend relational models to track essential physical metrics over time, including blood pressure, blood glucose, and weight, complete with recording timestamps and data sources[cite: 1].",
+            "mediaType": "Image",
+            "mediaLabel": "Vitals Tracking",
+            "media": "CaptureX_2026-09-04_105312_mojacares.com.png",
+            "tags": ["EHR", "Data Visualization", "PostgreSQL"]
+          },
+          {
+            "title": "Medical Record Data Extraction",
+            "description": "An automated pipeline that processes medical documents uploaded to AWS S3, extracting specific clinical data points—such as hemoglobin levels, visual acuity, and cholesterol—into structured MedicalRecord entries[cite: 1].",
+            "mediaType": "Image",
+            "mediaLabel": "Document Extraction",
+            "media": "CaptureX_2026-09-04_105315_mojacares.com.png",
+            "tags": ["AWS S3", "Data Parsing", "Prisma"]
+          },
+          {
+            "title": "Intelligent Health Insights & Summaries",
+            "description": "Backend services that aggregate booking notes, previous visit details, and parsed lab metrics to automatically generate comprehensive visit summaries and actionable health insights for specific patients[cite: 1].",
+            "mediaType": "Image",
+            "mediaLabel": "Visit Summaries",
+            "media": "CaptureX_2026-09-04_105310_mojacares.com.png",
+            "tags": ["Analytics", "API", "Clinical Data"]
+          }
+        ],
+        "metrics": [
+          { "value": "Unified", "label": "Full-Stack Architecture" },
+          { "value": "Automated", "label": "Lab Data Extraction" },
+          { "value": "JWT", "label": "Secured Authentication" },
+          { "value": "Dynamic", "label": "Vitals Visualization" }
+        ],
+        "postMortem": [
+          {
+            "title": "Full-Stack State Management",
+            "body": "Building a responsive clinical dashboard required handling complex, deeply nested patient data objects on the client side without compromising application performance.",
+            "entries": [
+              { "heading": "Optimized React Rendering", "detail": "Leveraged Next.js features and optimized component lifecycles to ensure that data-heavy views, such as longitudinal vitals charts and extensive medical history timelines, render seamlessly." }
+            ]
+          },
+          {
+            "title": "Clinical Data Structuring & Integrity",
+            "body": "Transitioning unstructured text from medical reports into strictly typed, queryable database fields necessitated a rigid backend design.",
+            "entries": [
+              { "heading": "Prisma Schema Relationships", "detail": "Designed an advanced Prisma schema to enforce strict relational integrity between Patients, Bookings, PreviousVisits, PatientVitals, and extracted MedicalRecords, ensuring reliable historical data tracking[cite: 1]." }
+            ]
+          },
+          {
+            "title": "Secure Document Infrastructure",
+            "body": "Managing the upload and retrieval of sensitive medical files required secure, region-specific cloud storage configurations.",
+            "entries": [
+              { "heading": "AWS S3 Integration", "detail": "Utilized the AWS SDK to programmatically verify bucket locations and manage the secure transit of clinical PDFs and lab reports to isolated cloud storage environments[cite: 1]." }
+            ]
+          }
+        ],
+        "seo": {
+          "metaTitle": "MojaCares Full Stack Healthcare Application Case Study",
+          "metaDescription": "Technical case study of MojaCares, an intelligent Electronic Health Record (EHR) platform built with Next.js, React, Node.js, Prisma, PostgreSQL, and AWS S3.",
+          "metaKeywords": ["healthcare software", "nextjs", "react", "nodejs", "prisma orm", "postgresql", "aws s3", "ehr platform", "full stack development"]
+        }
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

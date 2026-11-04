@@ -1,0 +1,500 @@
+---
+import { Icon } from "astro-icon/components"
+
+interface Props {
+  badge?: string
+  title?: string
+  subtitle?: string
+  source?: string
+  idPrefix?: string
+  className?: string
+}
+
+const {
+  badge = "TECH_DISPATCH // INSIGHTS",
+  title = "Subscribe to Tech Stories & Insights",
+  subtitle = "Stories on AI advancements, semiconductor shifts, emerging tech trends, and modern software engineering delivered directly to your inbox.",
+  source = "newsletter_section",
+  idPrefix = "newsletter",
+  className = "",
+} = Astro.props
+
+const formId = `${idPrefix}-form`
+const emailInputId = `${idPrefix}-email`
+const nameInputId = `${idPrefix}-name`
+const hpInputId = `${idPrefix}-hp`
+const turnstileContainerId = `${idPrefix}-turnstile-container`
+const statusId = `${idPrefix}-status`
+const submitBtnId = `${idPrefix}-submit`
+const submitTextId = `${idPrefix}-submit-text`
+---
+
+<style>
+  @keyframes blink-cursor {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  .cursor-blink {
+    animation: blink-cursor 1.1s step-end infinite;
+  }
+  @keyframes shimmer-x {
+    0% {
+      background-position: -200% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+  .btn-shimmer:hover {
+    animation: shimmer-x 1.4s ease infinite;
+    background-image: linear-gradient(
+      105deg,
+      oklch(var(--primary)) 0%,
+      oklch(var(--primary) / 85%) 45%,
+      oklch(var(--primary)) 55%,
+      oklch(var(--primary)) 100%
+    );
+    background-size: 200% auto;
+  }
+</style>
+
+<section
+  id={idPrefix}
+  class={`relative z-10 container mx-auto overflow-hidden border-b border-border bg-card/60 py-14 sm:py-18 md:py-20 backdrop-blur-xs ${className}`}
+  data-grid-cross
+>
+  <!-- Background Stripes & Ambient Glow -->
+  <div
+    class="diagonal-stripes pointer-events-none absolute inset-0 z-0 bg-background opacity-60"
+    aria-hidden="true"
+  >
+  </div>
+
+  <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+    <div
+      class="absolute top-1/2 left-1/2 h-44 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[90px]"
+    >
+    </div>
+  </div>
+
+  <div class="relative z-10 px-4 sm:px-6">
+    <!-- Header -->
+    <div class="mx-auto max-w-2xl text-center">
+      <!-- Section label pill -->
+      <div class="flex justify-center">
+        <p
+          class="mb-4 inline-flex items-center gap-2 border border-primary/25 bg-primary/8 px-4 py-1.5 font-mono text-xs font-semibold tracking-[0.2em] text-primary uppercase shadow-[0_0_15px_oklch(var(--primary)/10%)]"
+        >
+          <span
+            class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary shadow-[0_0_6px_oklch(var(--primary)/80%)]"
+          ></span>
+          {badge}
+          <span class="cursor-blink ml-1 inline-block h-3 w-0.5 bg-primary"
+          ></span>
+        </p>
+      </div>
+
+      <!-- Title -->
+      <h2
+        class="text-2xl font-bold tracking-tight text-balance text-foreground sm:text-3xl md:text-4xl"
+      >
+        {title}
+      </h2>
+
+      <div class="accent-bar mx-auto my-3.5 w-24"></div>
+
+      <!-- Subtitle -->
+      <p
+        class="mx-auto max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base"
+      >
+        {subtitle}
+      </p>
+    </div>
+
+    <!-- Form Container -->
+    <div class="mx-auto mt-8 max-w-xl">
+      <form
+        id={formId}
+        data-source={source}
+        data-prefix={idPrefix}
+        class="flex flex-col gap-3"
+      >
+        <!-- Honeypot Trap (Hidden visually & from screen readers) -->
+        <div
+          aria-hidden="true"
+          style="display:none; position:absolute; left:-9999px; opacity:0; pointer-events:none;"
+        >
+          <label for={hpInputId}>Leave empty</label>
+          <input
+            type="text"
+            id={hpInputId}
+            name="hp_field"
+            tabindex="-1"
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Minimal Unified Input Bar -->
+        <div
+          class="group/bar relative flex flex-col items-stretch border border-border/80 bg-background/80 p-1.5 backdrop-blur-md transition-all duration-300 focus-within:border-primary focus-within:shadow-[0_0_25px_oklch(var(--primary)/0.12)] focus-within:ring-2 focus-within:ring-primary/20 hover:border-primary/40 sm:flex-row sm:items-center"
+        >
+          <!-- Optional Name Field -->
+          <div
+            class="relative flex items-center border-b border-border/50 px-2 py-1 sm:w-44 sm:border-r sm:border-b-0 sm:py-0"
+          >
+            <Icon
+              name="mdi:account-outline"
+              class="size-4 shrink-0 text-muted-foreground/60 transition-colors group-focus-within/bar:text-primary/70"
+            />
+            <input
+              type="text"
+              id={nameInputId}
+              name="name"
+              placeholder="Name (optional)"
+              class="h-10 w-full bg-transparent px-2.5 font-mono text-xs text-foreground outline-none placeholder:text-muted-foreground/50 sm:h-11 sm:text-sm"
+            />
+          </div>
+
+          <!-- Email Field (Required) -->
+          <div class="relative flex flex-1 items-center px-2 py-1 sm:py-0">
+            <Icon
+              name="mdi:email-outline"
+              class="size-4 shrink-0 text-muted-foreground/60 transition-colors group-focus-within/bar:text-primary/70"
+            />
+            <input
+              type="email"
+              id={emailInputId}
+              name="email"
+              required
+              placeholder="Enter your email address..."
+              class="h-10 w-full bg-transparent px-2.5 font-mono text-xs text-foreground outline-none placeholder:text-muted-foreground/50 sm:h-11 sm:text-sm"
+            />
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            id={submitBtnId}
+            class="btn-shimmer group/btn relative inline-flex h-10 shrink-0 cursor-pointer items-center justify-center gap-2 border border-primary bg-primary px-6 font-mono text-xs font-bold tracking-wider text-primary-foreground uppercase transition-all duration-200 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:h-11"
+          >
+            <span
+              id={submitTextId}
+              class="flex items-center gap-2 transition-transform duration-200"
+            >
+              Subscribe
+              <Icon
+                name="mdi:arrow-right"
+                class="size-4 transition-transform duration-200 group-hover/btn:translate-x-1"
+              />
+            </span>
+          </button>
+        </div>
+
+        <!-- Cloudflare Turnstile Container -->
+        <div
+          id={turnstileContainerId}
+          class="flex min-h-[65px] justify-center py-1 empty:hidden"
+        >
+        </div>
+
+        <!-- Status Message Alert -->
+        <div
+          id={statusId}
+          class="hidden border p-3 font-mono text-xs leading-relaxed transition-all"
+          role="alert"
+        >
+        </div>
+
+        <!-- Clean Subtext with Unsubscribe Anytime -->
+        <div
+          class="mt-3.5 flex items-center justify-center gap-2 font-mono text-[11px] text-muted-foreground/75 sm:text-xs"
+        >
+          <Icon
+            name="mdi:shield-check-outline"
+            class="size-3.5 shrink-0 text-primary/75 sm:size-4"
+          />
+          <span>Zero spam. Unsubscribe anytime with 1-click.</span>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { getApiBaseUrl } from "@/lib/api/baseUrl"
+
+  function setupNewsletterForm(formElement: HTMLFormElement) {
+    const prefix = formElement.getAttribute("data-prefix") || "newsletter"
+    const source =
+      formElement.getAttribute("data-source") || "newsletter_section"
+
+    const submitBtn = document.getElementById(
+      `${prefix}-submit`
+    ) as HTMLButtonElement | null
+    const submitText = document.getElementById(`${prefix}-submit-text`)
+    const statusDiv = document.getElementById(`${prefix}-status`)
+    const turnstileContainer = document.getElementById(
+      `${prefix}-turnstile-container`
+    )
+
+    if (!submitBtn || !submitText || !statusDiv) return
+
+    let widgetId: string | null = null
+
+    const emailInput = document.getElementById(
+      `${prefix}-email`
+    ) as HTMLInputElement | null
+
+    function showStatus(
+      message: string,
+      isError: boolean,
+      suggestedEmail?: string
+    ) {
+      if (!statusDiv) return
+      statusDiv.classList.remove(
+        "hidden",
+        "bg-emerald-500/10",
+        "border-emerald-500/30",
+        "text-emerald-400",
+        "bg-destructive/10",
+        "border-destructive/30",
+        "text-destructive"
+      )
+
+      if (isError) {
+        statusDiv.classList.add(
+          "bg-destructive/10",
+          "border-destructive/30",
+          "text-destructive"
+        )
+      } else {
+        statusDiv.classList.add(
+          "bg-emerald-500/10",
+          "border-emerald-500/30",
+          "text-emerald-400"
+        )
+      }
+
+      if (suggestedEmail) {
+        statusDiv.innerHTML = `
+          <div>${message}</div>
+          <div class="mt-2 flex items-center justify-between gap-2 border-t border-destructive/20 pt-2 text-amber-300 font-semibold">
+            <span>Did you mean <strong>${suggestedEmail}</strong>?</span>
+            <button type="button" id="${prefix}-apply-suggestion" class="rounded bg-amber-400 px-2 py-0.5 font-mono text-[10px] font-bold uppercase text-black transition hover:bg-amber-300 cursor-pointer">
+              Apply
+            </button>
+          </div>
+        `
+        const applyBtn = document.getElementById(`${prefix}-apply-suggestion`)
+        applyBtn?.addEventListener("click", () => {
+          if (emailInput) emailInput.value = suggestedEmail
+          hideStatus()
+          emailInput?.focus()
+        })
+      } else {
+        statusDiv.textContent = message
+      }
+      window.dispatchEvent(new CustomEvent("grid-refresh"))
+    }
+
+    function hideStatus() {
+      if (statusDiv) {
+        statusDiv.classList.add("hidden")
+        statusDiv.innerHTML = ""
+        window.dispatchEvent(new CustomEvent("grid-refresh"))
+      }
+    }
+
+    function initNewsletterTurnstileOnDemand() {
+      const isLocal =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+      const turnstileKey =
+        import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ||
+        (isLocal ? "1x00000000000000000000AA" : "0x4AAAAAAEMAnAognjniSApt")
+      if (!turnstileKey || !turnstileContainer || widgetId !== null) return
+
+      const render = () => {
+        if (window.turnstile && widgetId === null) {
+          try {
+            widgetId = window.turnstile.render(
+              `#${prefix}-turnstile-container`,
+              {
+                sitekey: turnstileKey,
+                theme: "dark",
+                callback: () => {
+                  window.dispatchEvent(new CustomEvent("grid-refresh"))
+                },
+              }
+            )
+            window.dispatchEvent(new CustomEvent("grid-refresh"))
+          } catch (err) {
+            console.warn(`[Turnstile] ${prefix} render warning:`, err)
+          }
+        }
+      }
+
+      if (window.turnstile) {
+        render()
+        return
+      }
+
+      let script = document.getElementById(
+        "cf-turnstile-script"
+      ) as HTMLScriptElement | null
+      if (!script) {
+        script = document.createElement("script")
+        script.id = "cf-turnstile-script"
+        script.src =
+          "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+        script.async = true
+        script.defer = true
+        document.head.appendChild(script)
+      }
+      script.addEventListener("load", render, { once: true })
+    }
+
+    // Avoid duplicate event listener binding
+    if (formElement.dataset.bound === "true") return
+    formElement.dataset.bound = "true"
+
+    const nameInput = document.getElementById(
+      `${prefix}-name`
+    ) as HTMLInputElement | null
+    emailInput?.addEventListener("focus", initNewsletterTurnstileOnDemand, {
+      once: true,
+    })
+    emailInput?.addEventListener("click", initNewsletterTurnstileOnDemand, {
+      once: true,
+    })
+    emailInput?.addEventListener("input", initNewsletterTurnstileOnDemand, {
+      once: true,
+    })
+    nameInput?.addEventListener("focus", initNewsletterTurnstileOnDemand, {
+      once: true,
+    })
+    nameInput?.addEventListener("click", initNewsletterTurnstileOnDemand, {
+      once: true,
+    })
+    nameInput?.addEventListener("input", initNewsletterTurnstileOnDemand, {
+      once: true,
+    })
+
+    formElement.addEventListener("submit", async (e) => {
+      e.preventDefault()
+      initNewsletterTurnstileOnDemand()
+      hideStatus()
+
+      const formData = new FormData(formElement)
+      const email = (formData.get("email") as string)?.trim()
+      const name = (formData.get("name") as string)?.trim() || undefined
+      const hp_field = (formData.get("hp_field") as string) || ""
+
+      let captchaToken = ""
+      if (window.turnstile && widgetId !== null) {
+        captchaToken = window.turnstile.getResponse(widgetId) || ""
+      }
+
+      const originalHTML = submitText.innerHTML
+      submitBtn.disabled = true
+      submitText.innerHTML = `<span class="animate-pulse">Subscribing...</span>`
+
+      const apiUrl = getApiBaseUrl()
+
+      try {
+        const response = await fetch(`${apiUrl}/subscriber/v1/subscribe`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            name,
+            source,
+            hp_field,
+            captchaToken,
+          }),
+        })
+
+        const data = await response.json().catch(() => ({}))
+
+        if (response.ok && data.success) {
+          const isAlready = data.data?.alreadySubscribed || false
+          if (isAlready) {
+            submitText.innerHTML = `Already Subscribed!`
+            showStatus(
+              data.message || "You are already subscribed to the newsletter!",
+              false
+            )
+          } else {
+            submitText.innerHTML = `
+              <svg class="size-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              Subscribed!
+            `
+            showStatus(
+              data.message ||
+                "Thank you for subscribing! Check your inbox for confirmation.",
+              false
+            )
+          }
+
+          submitBtn.classList.remove("bg-primary", "border-primary")
+          submitBtn.classList.add("bg-emerald-600", "border-emerald-600")
+          formElement.reset()
+
+          if (window.turnstile && widgetId !== null) {
+            window.turnstile.reset(widgetId)
+          }
+
+          setTimeout(() => {
+            submitText.innerHTML = originalHTML
+            submitBtn.classList.add("bg-primary", "border-primary")
+            submitBtn.classList.remove("bg-emerald-600", "border-emerald-600")
+            submitBtn.disabled = false
+          }, 5000)
+        } else {
+          const errorMessage =
+            data.message ||
+            data.error?.message ||
+            "Failed to subscribe. Please try again."
+          const suggestedEmail =
+            data.data?.suggestedEmail ||
+            data.details?.suggestedEmail ||
+            data.error?.details?.suggestedEmail
+          showStatus(errorMessage, true, suggestedEmail)
+          submitText.innerHTML = originalHTML
+          submitBtn.disabled = false
+
+          if (window.turnstile && widgetId !== null) {
+            window.turnstile.reset(widgetId)
+          }
+        }
+      } catch (err) {
+        console.error("Newsletter error:", err)
+        showStatus("Network error occurred. Please try again later.", true)
+        submitText.innerHTML = originalHTML
+        submitBtn.disabled = false
+      }
+    })
+  }
+
+  function initAllNewsletterForms() {
+    const forms =
+      document.querySelectorAll<HTMLFormElement>("form[data-prefix]")
+    forms.forEach((form) => setupNewsletterForm(form))
+  }
+
+  document.addEventListener("astro:page-load", initAllNewsletterForms)
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAllNewsletterForms)
+  } else {
+    initAllNewsletterForms()
+  }
+</script>

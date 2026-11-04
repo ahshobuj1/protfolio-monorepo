@@ -1,0 +1,168 @@
+---
+import MySiteLayout from "@/layouts/MySiteLayout.astro"
+import CaseStudyHeader from "@/components/CaseStudy/hero/CaseStudyHeader.astro"
+import CaseStudyExplorer from "@/components/CaseStudy/explorer/CaseStudyExplorer.astro"
+import NewsletterSection from "@/components/Newsletter/NewsletterSection.astro"
+import SectionDivider from "@/components/SectionDivider.astro"
+import { CaseStudyApi } from "@/lib/api/caseStudyApi"
+import SEO from "@/components/SEO/SEO.astro"
+
+import type { Project } from "@/data/projects"
+
+// Fetch all published systems directly from PostgreSQL API
+const allFetched = await CaseStudyApi.fetchAllCaseStudies()
+
+const apiDeepDives = allFetched.filter(
+  (s) => s.projectType === "CASE_STUDY" || !s.projectType
+)
+const apiQuickProjects = allFetched.filter((s) => s.projectType === "PROJECT")
+
+const rawCaseStudies = apiDeepDives
+const rawStandardProjects = apiQuickProjects
+
+const normalizeStatus = (
+  status?: string
+): "Completed" | "Live" | "In Progress" | "Archived" => {
+  const cleaned = (status || "Completed").replace(/^Status:\s*/i, "")
+  if (cleaned === "Live" || cleaned === "In Progress" || cleaned === "Archived")
+    return cleaned
+  return "Completed"
+}
+
+const caseStudies: Project[] = rawCaseStudies.map((study, idx) => {
+  const metaObj = (study.metadata || []).reduce<Record<string, string>>(
+    (acc, item) => {
+      acc[item.label] = item.value
+      return acc
+    },
+    {}
+  )
+
+  return {
+    id: study.slug,
+    slug: study.slug,
+    title: study.title.includes("—")
+      ? study.title.split("—")[0]?.trim()
+      : study.title,
+    subtitle:
+      study.subtitle ||
+      (study.title.includes("—")
+        ? study.title.split("—")[1]?.trim()
+        : undefined),
+    description: study.description,
+    role: study.role || metaObj["Role"] || "Full-Stack Architect",
+    impact:
+      study.impact ||
+      (study.description.length > 130
+        ? study.description.slice(0, 130) + "..."
+        : study.description),
+    tech: study.techStack || [],
+    links: {
+      live: study.liveUrl || undefined,
+      github: study.githubUrl || undefined,
+      caseStudy: `/case-study/${study.slug}`,
+    },
+    img: study.image,
+    index: String(idx + 1).padStart(2, "0"),
+    status: normalizeStatus(study.status),
+    year: study.timeline || metaObj["Timeline"] || "2026",
+    hasCaseStudy: true,
+    featured: Boolean(study.featured ?? true),
+    metrics: (study.metrics || []).slice(0, 3).map((m) => ({
+      value: m.value,
+      label: m.label,
+    })),
+    highlights:
+      study.highlights && study.highlights.length > 0
+        ? study.highlights
+        : (study.features || []).flatMap((f) => f.highlights || []).slice(0, 3),
+  }
+})
+
+const standardProjects: Project[] = rawStandardProjects.map((study, idx) => {
+  const metaObj = (study.metadata || []).reduce<Record<string, string>>(
+    (acc, item) => {
+      acc[item.label] = item.value
+      return acc
+    },
+    {}
+  )
+
+  return {
+    id: study.slug,
+    slug: study.slug,
+    title: study.title.includes("—")
+      ? study.title.split("—")[0]?.trim()
+      : study.title,
+    subtitle:
+      study.subtitle ||
+      (study.title.includes("—")
+        ? study.title.split("—")[1]?.trim()
+        : undefined),
+    description: study.description,
+    role: study.role || metaObj["Role"] || "Lead System Architect",
+    impact: study.impact || study.description,
+    tech: study.techStack || [],
+    links: {
+      live: study.liveUrl || undefined,
+      github: study.githubUrl || undefined,
+    },
+    img: study.image,
+    index: String(idx + 1).padStart(2, "0"),
+    status: normalizeStatus(study.status),
+    year: study.timeline || metaObj["Timeline"] || "2026",
+    hasCaseStudy: false,
+    highlights: study.highlights || [],
+  }
+})
+
+const allProjects = [...caseStudies, ...standardProjects]
+const totalTechCount = new Set(allProjects.flatMap((p) => p.tech)).size
+---
+
+<MySiteLayout>
+  <!-- SEO Head Slot -->
+  <Fragment slot="head">
+    <SEO
+      title="Technical Case Studies & System Architecture | Fi Amanillah"
+      description="In-depth architectural breakdowns, database schema designs, event-driven pipelines, and production engineering post-mortems across full-stack applications."
+      url="/case-study"
+      image="/fi.png"
+      tags={[
+        "Software Architecture",
+        "Case Studies",
+        "System Design",
+        "Microservices",
+      ]}
+    />
+  </Fragment>
+
+  <!-- Hero Header with Live Aggregated Metrics -->
+  <CaseStudyHeader
+    totalCaseStudies={caseStudies.length}
+    totalProjects={standardProjects.length}
+    totalTechCount={totalTechCount}
+  />
+
+  <SectionDivider />
+
+  <main class="w-full">
+    <!-- Interactive Case Study & Projects Explorer -->
+    <div class="container mx-auto">
+      <CaseStudyExplorer
+        caseStudies={caseStudies}
+        standardProjects={standardProjects}
+      />
+    </div>
+
+    <SectionDivider class="mt-16" />
+
+    <!-- Newsletter Section -->
+    <NewsletterSection
+      title="Subscribe to Tech & Architecture Insights"
+      subtitle="Get notified when new technical post-mortems, hardware benchmarks, and software architecture case studies are published."
+      source="case_study_list"
+      idPrefix="cs-list-newsletter"
+    />
+  </main>
+</MySiteLayout>

@@ -1,0 +1,82 @@
+---
+import CaseStudySectionTitle from "@/components/CaseStudy/CaseStudySectionTitle.astro"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Alert02Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons"
+
+interface ContextBlock {
+  label: string
+  body: string
+}
+
+interface Props {
+  blocks: ContextBlock[]
+}
+
+const { blocks } = Astro.props as Props
+---
+
+<section class="space-y-8">
+  <CaseStudySectionTitle
+    label="[ SEC_01 // SYSTEM_CONTEXT_&_PROBLEM_STATEMENT ]"
+  />
+
+  <div class="px-4 sm:px-6 lg:px-8">
+    <div
+      class={`grid gap-6 ${blocks.length === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2"}`}
+    >
+      {
+        blocks.map((block, i) => {
+          const isProblem =
+            i === 0 ||
+            block.label.toLowerCase().includes("problem") ||
+            block.label.toLowerCase().includes("challenge")
+
+          return (
+            <article class="group relative flex flex-col justify-between overflow-hidden border border-border bg-card/60 p-6 transition-all duration-300 hover:border-primary/40 hover:bg-card/80 hover:shadow-[0_0_0_1px_oklch(var(--primary)/15%)] sm:p-7">
+              {/* Corner brackets */}
+              <div class="pointer-events-none absolute top-2 left-2 z-10 h-3 w-3 border-t-[1.5px] border-l-[1.5px] border-border transition-colors group-hover:border-primary" />
+              <div class="pointer-events-none absolute top-2 right-2 z-10 h-3 w-3 border-t-[1.5px] border-r-[1.5px] border-border transition-colors group-hover:border-primary" />
+              <div class="pointer-events-none absolute bottom-2 left-2 z-10 h-3 w-3 border-b-[1.5px] border-l-[1.5px] border-border transition-colors group-hover:border-primary" />
+              <div class="pointer-events-none absolute right-2 bottom-2 z-10 h-3 w-3 border-r-[1.5px] border-b-[1.5px] border-border transition-colors group-hover:border-primary" />
+
+              <div class="space-y-4">
+                <div class="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class={`flex h-8 w-8 items-center justify-center rounded-sm border ${
+                        isProblem
+                          ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                          : "border-primary/40 bg-primary/10 text-primary"
+                      }`}
+                    >
+                      <HugeiconsIcon
+                        icon={isProblem ? Alert02Icon : CheckmarkCircle02Icon}
+                        className="size-4.5"
+                      />
+                    </div>
+                    <h3 class="text-base font-bold tracking-tight text-foreground sm:text-lg">
+                      {block.label}
+                    </h3>
+                  </div>
+
+                  <span class="font-mono text-[10px] tracking-widest text-muted-foreground/70 uppercase">
+                    CTX_{String(i + 1).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <p class="text-sm leading-relaxed text-muted-foreground">
+                  {block.body}
+                </p>
+              </div>
+
+              <div class="mt-6 flex items-center justify-between border-t border-border/40 pt-3 font-mono text-[10px] text-muted-foreground/60 uppercase">
+                <span>PHASE_ANALYSIS</span>
+                <span>VERIFIED</span>
+              </div>
+            </article>
+          )
+        })
+      }
+    </div>
+  </div>
+</section>
